@@ -42,6 +42,10 @@ export default function Weather() {
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
                 Generated {w.generatedAt}
               </span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
+                Based on {w.basedOn}
+              </span>
             </>
           )}
         </motion.div>

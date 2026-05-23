@@ -210,7 +210,8 @@ export default function ReadingRoom() {
                   { label: 'Settled',    value: t.settled },
                   { label: 'Author',     value: t.author },
                   { label: 'Decision',   value: t.relatedDecision },
-                  { label: 'Accessed',   value: '23 May 2026' },
+                  { label: 'Views',      value: `${t.views} since settlement` },
+                  { label: 'Accessed',   value: '23 May 2026 · 09:42' },
                 ].map(({ label, value }, i, arr) => (
                   <div
                     key={label}
@@ -254,20 +255,45 @@ export default function ReadingRoom() {
               </div>
             </motion.div>
 
+            <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
+              <SectionHeader label="Cited In" />
+              <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {t.citedIn.map((ref) => (
+                  <span
+                    key={ref}
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 11,
+                      color: 'var(--stoa-gold)',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {ref}
+                  </span>
+                ))}
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', marginTop: 2 }}>
+                  Active deliberation references this thread as precedent.
+                </span>
+              </div>
+            </motion.div>
+
             <motion.div variants={depositItem}>
-              <SectionHeader label="Precedent" />
-              <p
-                style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 12,
-                  color: 'var(--stoa-ink-3)',
-                  margin: '12px 0 0',
-                  lineHeight: 1.65,
-                }}
-              >
-                This thread is the settled record of Decision {t.relatedDecision}. Future deliberations may
-                cite this thread for precedent. Currently cited in: D-042.
-              </p>
+              <SectionHeader label="Related Threads" />
+              <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {t.relatedThreads.map((ref) => (
+                  <span
+                    key={ref}
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 11,
+                      color: 'var(--stoa-ink-3)',
+                      letterSpacing: '0.04em',
+                    }}
+                  >
+                    {ref}
+                  </span>
+                ))}
+              </div>
             </motion.div>
           </motion.div>
         )}

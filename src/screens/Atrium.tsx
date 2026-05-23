@@ -9,7 +9,20 @@ import {
   ripeningPredictions,
   recentlySettled,
   memoryBand,
+  systemStatus,
 } from '../data/fixtures'
+
+const statusColor: Record<string, string> = {
+  deliberating: 'var(--stoa-gold)',
+  open:         'var(--stoa-ink-3)',
+  overdue:      'var(--stoa-amber)',
+}
+
+const statusLabel: Record<string, string> = {
+  deliberating: 'Active',
+  open:         'Open',
+  overdue:      'Overdue',
+}
 
 export default function Atrium() {
   const isMobile = useIsMobile()
@@ -24,7 +37,7 @@ export default function Atrium() {
       {/* Organization Header */}
       <div
         style={{
-          padding: isMobile ? '28px 20px 22px' : '36px 40px 28px',
+          padding: isMobile ? '24px 20px 20px' : '32px 40px 24px',
           borderBottom: '1px solid var(--stoa-rule)',
         }}
       >
@@ -32,29 +45,29 @@ export default function Atrium() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' as const, gap: 10 }}>
             <div>
               <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 8 }}>
-                <span
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 10,
-                    color: 'var(--stoa-ink-3)',
-                    letterSpacing: '0.08em',
-                    textTransform: 'uppercase' as const,
-                  }}
-                >
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
                   Atrium
                 </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>
                   {organization.period}
                 </span>
+                {systemStatus.overdueDecisions > 0 && (
+                  <>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                      {systemStatus.overdueDecisions} overdue
+                    </span>
+                  </>
+                )}
               </div>
               <h1
                 style={{
                   fontFamily: 'var(--font-serif)',
-                  fontSize: isMobile ? 24 : 30,
+                  fontSize: isMobile ? 22 : 28,
                   fontWeight: 400,
                   color: 'var(--stoa-ink)',
-                  margin: '0 0 6px',
+                  margin: '0 0 5px',
                   letterSpacing: '-0.01em',
                   lineHeight: 1.15,
                 }}
@@ -64,11 +77,10 @@ export default function Atrium() {
               <p
                 style={{
                   fontFamily: 'var(--font-sans)',
-                  fontSize: 13,
+                  fontSize: 12,
                   fontWeight: 300,
                   color: 'var(--stoa-ink-3)',
                   margin: 0,
-                  letterSpacing: '0.01em',
                 }}
               >
                 {organization.chapter}
@@ -76,27 +88,14 @@ export default function Atrium() {
             </div>
             {!isMobile && (
               <div style={{ textAlign: 'right' as const }}>
-                <p
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 10,
-                    color: 'var(--stoa-ink-3)',
-                    margin: '0 0 3px',
-                    letterSpacing: '0.05em',
-                  }}
-                >
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.05em' }}>
                   {organization.location} · Est. {organization.founded}
                 </p>
-                <p
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 10,
-                    color: 'var(--stoa-ink-3)',
-                    margin: 0,
-                    letterSpacing: '0.05em',
-                  }}
-                >
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.05em' }}>
                   Last convened {weeklyStanding.lastConvened}
+                </p>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.05em' }}>
+                  Synced {systemStatus.lastSync}
                 </p>
               </div>
             )}
@@ -113,45 +112,52 @@ export default function Atrium() {
         <motion.div
           variants={settle}
           style={{
-            padding: isMobile ? '20px 20px' : '24px 28px 24px 40px',
+            padding: isMobile ? '20px 20px' : '22px 24px 22px 40px',
             borderRight: isMobile ? 'none' : '1px solid var(--stoa-rule)',
             borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
           }}
         >
           <SectionHeader label="Standing" meta={`Period ends ${weeklyStanding.nextCouncil}`} />
-          <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column' }}>
+          <div style={{ marginTop: 14 }}>
             {[
-              { label: 'Active Decisions',      value: weeklyStanding.activeDecisions },
-              { label: 'Deliberation Load',     value: weeklyStanding.deliberationLoad },
-              { label: 'Settled this Quarter',  value: weeklyStanding.settledThisQuarter },
-              { label: 'Memory Entries',        value: weeklyStanding.memoryEntries },
-              { label: 'Participants',          value: weeklyStanding.activeParticipants },
-            ].map(({ label, value }, i, arr) => (
+              { label: 'Active Decisions',     value: weeklyStanding.activeDecisions,     note: weeklyStanding.activeDecisionsChange },
+              { label: 'Deliberation Load',    value: weeklyStanding.deliberationLoad,     note: weeklyStanding.deliberationLoadTrend },
+              { label: 'Settled this Quarter', value: weeklyStanding.settledThisQuarter,   note: weeklyStanding.settledThisQuarterChange },
+              { label: 'Memory Entries',       value: weeklyStanding.memoryEntries,        note: weeklyStanding.memoryEntriesChange },
+              { label: 'Participants',         value: weeklyStanding.activeParticipants,   note: null },
+            ].map(({ label, value, note }, i, arr) => (
               <div
                 key={label}
                 style={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'baseline',
-                  padding: '10px 0',
+                  padding: '9px 0',
                   borderBottom: i < arr.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
                 }}
               >
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)' }}>
-                  {label}
-                </span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--stoa-ink)' }}>
-                  {value}
-                </span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)' }}>
+                    {label}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: label === 'Deliberation Load' ? 'var(--stoa-amber)' : 'var(--stoa-ink)' }}>
+                    {value}
+                  </span>
+                </div>
+                {note && (
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '2px 0 0', textAlign: 'right' as const, letterSpacing: '0.03em' }}>
+                    {note}
+                  </p>
+                )}
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 20 }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '0 0 4px', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>
+          <div style={{ marginTop: 18 }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
               Next Council
             </p>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-gold)', margin: 0 }}>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-gold)', margin: '0 0 2px' }}>
               {weeklyStanding.nextCouncil}
+            </p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0 }}>
+              {systemStatus.pendingActions} pending actions · {systemStatus.sessionRef} in session
             </p>
           </div>
         </motion.div>
@@ -161,7 +167,7 @@ export default function Atrium() {
           variants={deposit}
           initial="hidden"
           animate="visible"
-          style={{ padding: isMobile ? '20px 20px' : '24px 40px 24px 28px' }}
+          style={{ padding: isMobile ? '20px 20px' : '22px 40px 22px 24px' }}
         >
           <SectionHeader label="In Deliberation" meta={`${inDeliberation.length} active`} />
           <div style={{ marginTop: 14 }}>
@@ -169,57 +175,83 @@ export default function Atrium() {
               <motion.div key={d.id} variants={depositItem}>
                 <div
                   style={{
-                    padding: '13px 0',
+                    padding: '12px 0',
                     borderBottom: i < inDeliberation.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
-                    display: 'flex',
-                    gap: 14,
-                    alignItems: 'flex-start',
                   }}
                 >
+                  {/* Title row */}
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 5 }}>
+                    <div
+                      style={{
+                        width: 4,
+                        height: 4,
+                        borderRadius: '50%',
+                        backgroundColor: statusColor[d.status],
+                        marginTop: 6,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-serif)',
+                            fontSize: 13,
+                            color: d.overdue ? 'var(--stoa-ink-2)' : 'var(--stoa-ink)',
+                            lineHeight: 1.4,
+                          }}
+                        >
+                          {d.title}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: 'var(--font-mono)',
+                            fontSize: 9,
+                            color: statusColor[d.status],
+                            letterSpacing: '0.08em',
+                            textTransform: 'uppercase' as const,
+                            flexShrink: 0,
+                            paddingTop: 2,
+                          }}
+                        >
+                          {statusLabel[d.status]}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  {/* Metadata row */}
                   <div
                     style={{
-                      width: 4,
-                      height: 4,
-                      borderRadius: '50%',
-                      backgroundColor: d.status === 'deliberating' ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)',
-                      marginTop: 7,
-                      flexShrink: 0,
+                      paddingLeft: 14,
+                      display: 'flex',
+                      flexWrap: 'wrap' as const,
+                      gap: '2px 14px',
                     }}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8, marginBottom: 4 }}>
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-serif)',
-                          fontSize: 14,
-                          color: 'var(--stoa-ink)',
-                          lineHeight: 1.4,
-                        }}
-                      >
-                        {d.title}
-                      </span>
-                      <span
-                        style={{
-                          fontFamily: 'var(--font-mono)',
-                          fontSize: 10,
-                          color: d.status === 'deliberating' ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)',
-                          letterSpacing: '0.07em',
-                          textTransform: 'uppercase' as const,
-                          flexShrink: 0,
-                          paddingTop: 2,
-                        }}
-                      >
-                        {d.status === 'deliberating' ? 'Active' : 'Open'}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', gap: 12 }}>
+                  >
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.03em' }}>
+                      {d.id}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
+                      {d.owner}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: d.overdue ? 'var(--stoa-amber)' : 'var(--stoa-ink-3)' }}>
+                      {d.overdue ? `Was due ${d.deadline}` : `Due ${d.deadline}`}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                      {d.daysActive}d active
+                    </span>
+                    {d.deliberationEntries > 0 ? (
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                        {d.id}
+                        {d.deliberationEntries} entries
                       </span>
-                      <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-                        {d.owner} · Due {d.deadline}
+                    ) : (
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', fontStyle: 'italic' }}>
+                        no entries yet
                       </span>
-                    </div>
+                    )}
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: d.overdue ? 'var(--stoa-amber)' : 'var(--stoa-ink-3)' }}>
+                      Last: {d.lastActivity}
+                    </span>
                   </div>
                 </div>
               </motion.div>
@@ -239,37 +271,42 @@ export default function Atrium() {
           initial="hidden"
           animate="visible"
           style={{
-            padding: isMobile ? '20px 20px' : '24px 28px 24px 40px',
+            padding: isMobile ? '20px 20px' : '22px 24px 22px 40px',
             borderRight: isMobile ? 'none' : '1px solid var(--stoa-rule)',
             borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
           }}
         >
-          <SectionHeader label="Ripening" meta="Approaching threshold" />
+          <SectionHeader label="Ripening" meta={`${ripeningPredictions.length} approaching threshold`} />
           <div style={{ marginTop: 14 }}>
             {ripeningPredictions.map((r, i) => (
               <motion.div
                 key={r.id}
                 variants={depositItem}
                 style={{
-                  padding: '14px 0',
+                  padding: '13px 0',
                   borderBottom: i < ripeningPredictions.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
                 }}
               >
-                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                   <div
                     style={{
                       width: 4,
                       height: 4,
                       borderRadius: '50%',
-                      backgroundColor: r.urgency === 'high' ? 'var(--stoa-amber)' : 'var(--stoa-gold)',
+                      backgroundColor: 'var(--stoa-amber)',
                       marginTop: 6,
                       flexShrink: 0,
                     }}
                   />
                   <div>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink)', margin: '0 0 4px', lineHeight: 1.4 }}>
-                      {r.signal}
-                    </p>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                        {r.id}
+                      </span>
+                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.3 }}>
+                        {r.signal}
+                      </p>
+                    </div>
                     <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.4 }}>
                       {r.trigger}
                     </p>
@@ -285,7 +322,7 @@ export default function Atrium() {
           variants={deposit}
           initial="hidden"
           animate="visible"
-          style={{ padding: isMobile ? '20px 20px' : '24px 40px 24px 28px' }}
+          style={{ padding: isMobile ? '20px 20px' : '22px 40px 22px 24px' }}
         >
           <SectionHeader label="Recently Settled" meta={`${recentlySettled.length} entries`} />
           <div style={{ marginTop: 14 }}>
@@ -294,32 +331,40 @@ export default function Atrium() {
                 key={d.id}
                 variants={depositItem}
                 style={{
-                  padding: '14px 0',
+                  padding: '11px 0',
                   borderBottom: i < recentlySettled.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
                 }}
               >
-                <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
+                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                   <div
                     style={{
                       width: 4,
                       height: 4,
                       borderRadius: '50%',
                       backgroundColor: 'var(--stoa-resolve)',
-                      marginTop: 6,
+                      marginTop: 5,
                       flexShrink: 0,
                     }}
                   />
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, marginBottom: 4 }}>
-                      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.4 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
+                      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.35 }}>
                         {d.title}
                       </p>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', flexShrink: 0, paddingTop: 2 }}>
-                        {d.settled}
-                      </span>
+                      <div style={{ display: 'flex', gap: 6, alignItems: 'baseline', flexShrink: 0 }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                          {d.id}
+                        </span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                          {d.settled}
+                        </span>
+                      </div>
                     </div>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.4 }}>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.4 }}>
                       {d.verdict}
+                    </p>
+                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '3px 0 0', letterSpacing: '0.03em' }}>
+                      Thread: {d.thread}
                     </p>
                   </div>
                 </div>
@@ -343,16 +388,7 @@ export default function Atrium() {
           flexShrink: 0,
         }}
       >
-        <span
-          style={{
-            fontFamily: 'var(--font-mono)',
-            fontSize: 9,
-            color: 'var(--stoa-ink-3)',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase' as const,
-            flexShrink: 0,
-          }}
-        >
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.1em', textTransform: 'uppercase' as const, flexShrink: 0 }}>
           Memory
         </span>
         <div style={{ width: 1, height: 10, backgroundColor: 'var(--stoa-rule-strong)', flexShrink: 0 }} />
