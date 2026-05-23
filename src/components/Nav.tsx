@@ -3,12 +3,12 @@ import { organization, councilSession, systemStatus } from '../data/fixtures'
 import { useIsMobile } from '../hooks/useViewport'
 
 const SCREENS = [
-  { path: '/',            label: 'Atrium',       short: 'ATR' },
-  { path: '/chamber',     label: 'Chamber',      short: 'D-042' },
-  { path: '/reading-room',label: 'Reading Room', short: 'M-017' },
-  { path: '/council',     label: 'Council',      short: 'SES' },
-  { path: '/weather',     label: 'Weather',      short: 'WX' },
-  { path: '/horizon',     label: 'Horizon',      short: 'HZN' },
+  { path: '/',             label: 'Atrio',     short: 'ATR' },
+  { path: '/chamber',     label: 'Decisión',   short: 'D-042' },
+  { path: '/reading-room',label: 'Archivo',    short: 'M-017' },
+  { path: '/council',     label: 'Consejo',    short: 'SES' },
+  { path: '/weather',     label: 'Clima',      short: 'CLIMA' },
+  { path: '/horizon',     label: 'Horizonte',  short: 'HZN' },
 ]
 
 export default function Nav() {
@@ -135,7 +135,7 @@ export default function Nav() {
               </span>
             </div>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', paddingLeft: 10, letterSpacing: '0.04em' }}>
-              {systemStatus.overdueDecisions > 0 ? `${systemStatus.overdueDecisions} overdue` : organization.period}
+              {systemStatus.overdueDecisions > 0 ? `${systemStatus.overdueDecisions} vencida` : organization.period}
             </span>
           </div>
         </div>

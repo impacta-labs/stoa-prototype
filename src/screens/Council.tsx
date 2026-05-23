@@ -4,22 +4,15 @@ import { chamberEnter, settle } from '../lib/motion'
 import { useIsMobile } from '../hooks/useViewport'
 import { councilSession, councilHistory, type StationItem } from '../data/fixtures'
 
-const ROMAN = ['I', 'II', 'III', 'IV', 'V']
+const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI']
 
 function ResolvedItem({ text }: { text: string }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 14,
-        padding: '14px 0',
-        alignItems: 'flex-start',
-      }}
-    >
+    <div style={{ display: 'flex', gap: 14, padding: '14px 0', alignItems: 'flex-start' }}>
       <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0, paddingTop: 3 }}>
         <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)' }} />
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
-          Resolved
+          Acordado
         </span>
       </div>
       <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
@@ -31,19 +24,12 @@ function ResolvedItem({ text }: { text: string }) {
 
 function ActionItem({ actor, due, text }: { actor?: string; due?: string; text: string }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 14,
-        padding: '14px 0',
-        alignItems: 'flex-start',
-      }}
-    >
+    <div style={{ display: 'flex', gap: 14, padding: '14px 0', alignItems: 'flex-start' }}>
       <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 3, flexShrink: 0, paddingTop: 2 }}>
         <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
           <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)' }} />
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
-            Action
+            Acción
           </span>
         </div>
         {actor && (
@@ -53,7 +39,7 @@ function ActionItem({ actor, due, text }: { actor?: string; due?: string; text: 
         )}
         {due && (
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', paddingLeft: 10, letterSpacing: '0.03em' }}>
-            Due {due}
+            Plazo {due}
           </span>
         )}
       </div>
@@ -66,14 +52,7 @@ function ActionItem({ actor, due, text }: { actor?: string; due?: string; text: 
 
 function ScheduleItem({ text }: { text: string }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 14,
-        padding: '14px 0',
-        alignItems: 'flex-start',
-      }}
-    >
+    <div style={{ display: 'flex', gap: 14, padding: '14px 0', alignItems: 'flex-start' }}>
       <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-ink-3)', flexShrink: 0, marginTop: 5 }} />
       <p style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.65, flex: 1, letterSpacing: '0.02em' }}>
         {text}
@@ -84,14 +63,7 @@ function ScheduleItem({ text }: { text: string }) {
 
 function AttributedItem({ actor, date, text, index }: { actor?: string; date?: string; text: string; index: number }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 16,
-        padding: '16px 0',
-        alignItems: 'flex-start',
-      }}
-    >
+    <div style={{ display: 'flex', gap: 16, padding: '16px 0', alignItems: 'flex-start' }}>
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', width: 20, flexShrink: 0, paddingTop: 2 }}>
         {String(index + 1).padStart(2, '0')}
       </span>
@@ -112,14 +84,7 @@ function AttributedItem({ actor, date, text, index }: { actor?: string; date?: s
 
 function NoteItem({ text, index }: { text: string; index: number }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 16,
-        padding: '16px 0',
-        alignItems: 'flex-start',
-      }}
-    >
+    <div style={{ display: 'flex', gap: 16, padding: '16px 0', alignItems: 'flex-start' }}>
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', width: 20, flexShrink: 0, paddingTop: 2 }}>
         {String(index + 1).padStart(2, '0')}
       </span>
@@ -132,14 +97,7 @@ function NoteItem({ text, index }: { text: string; index: number }) {
 
 function SignalItem_({ ref_: ref_, text, index }: { ref_?: string; text: string; index: number }) {
   return (
-    <div
-      style={{
-        display: 'flex',
-        gap: 16,
-        padding: '16px 0',
-        alignItems: 'flex-start',
-      }}
-    >
+    <div style={{ display: 'flex', gap: 16, padding: '16px 0', alignItems: 'flex-start' }}>
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', width: 20, flexShrink: 0, paddingTop: 2 }}>
         {String(index + 1).padStart(2, '0')}
       </span>
@@ -194,7 +152,7 @@ function renderStationItem(item: StationItem, index: number, isClosing: boolean)
     case 'signal':
       return (
         <div key={index} style={withBorder}>
-          <SignalItem_  ref_={item.ref} text={item.text} index={index} />
+          <SignalItem_ ref_={item.ref} text={item.text} index={index} />
         </div>
       )
     case 'attributed':
@@ -243,7 +201,7 @@ export default function Council() {
         <motion.div variants={settle}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 5 }}>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-              Council
+              Consejo
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.06em' }}>
@@ -253,7 +211,7 @@ export default function Council() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
               <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)' }} />
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-                In Session
+                En Sesión
               </span>
             </div>
           </div>
@@ -274,13 +232,13 @@ export default function Council() {
         {!isMobile && (
           <motion.div variants={settle} style={{ textAlign: 'right' as const }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '0 0 2px', letterSpacing: '0.04em' }}>
-              {session.date} · Opened {session.startTime}
+              {session.date} · Apertura {session.startTime}
             </p>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '0 0 2px' }}>
-              Convened by {session.convener}
+              Convocado por {session.convener}
             </p>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.03em' }}>
-              Previous: {session.previousSession.ref} · {session.previousSession.date}
+              Anterior: {session.previousSession.ref} · {session.previousSession.date}
             </p>
           </motion.div>
         )}
@@ -338,7 +296,7 @@ export default function Council() {
         ) : (
           <div
             style={{
-              width: 200,
+              width: 210,
               borderRight: '1px solid var(--stoa-rule)',
               backgroundColor: 'var(--stoa-surface-1)',
               display: 'flex',
@@ -359,7 +317,7 @@ export default function Council() {
               </p>
               <div style={{ paddingTop: 8, borderTop: '1px solid var(--stoa-rule)' }}>
                 <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 2px', letterSpacing: '0.05em' }}>
-                  Prev: {session.previousSession.ref}
+                  Ant.: {session.previousSession.ref}
                 </p>
                 <p style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.35 }}>
                   {session.previousSession.focus}
@@ -411,7 +369,7 @@ export default function Council() {
             {/* History */}
             <div style={{ padding: '12px 18px', borderTop: '1px solid var(--stoa-rule)' }}>
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 6px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
-                Session history
+                Historial de sesiones
               </p>
               {councilHistory.slice(0, 2).map((h) => (
                 <div key={h.ref} style={{ marginBottom: 5 }}>
@@ -424,7 +382,7 @@ export default function Council() {
                 </div>
               ))}
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '8px 0 0', letterSpacing: '0.05em' }}>
-                Next: {session.nextCouncil}
+                Próximo: {session.nextCouncil}
               </p>
             </div>
           </div>
@@ -459,7 +417,7 @@ export default function Council() {
               </h2>
               {isClosing && (
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-                  {currentStation.content.filter(c => c.type === 'resolved').length} resolved · {currentStation.content.filter(c => c.type === 'action').length} actions
+                  {currentStation.content.filter(c => c.type === 'resolved').length} acordados · {currentStation.content.filter(c => c.type === 'action').length} acciones
                 </span>
               )}
             </div>
@@ -491,7 +449,7 @@ export default function Council() {
                     <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
                       <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)', flexShrink: 0 }} />
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-                        Session record
+                        Registro de sesión
                       </span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
@@ -499,14 +457,13 @@ export default function Council() {
                       </span>
                     </div>
                     <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '8px 0 0 12px', lineHeight: 1.6 }}>
-                      This record will enter the Memory Layer on session close.
-                      Verdict on D-042 required before 30 Jun 2026.
-                      Next council: {session.nextCouncil}.
+                      Este registro entrará en la Memoria Estratégica al cierre de la sesión.
+                      Resolución de D-042 requerida antes del 30 Jun 2026.
+                      Próximo consejo: {session.nextCouncil}.
                     </p>
                   </motion.div>
                 )}
 
-                {/* Non-closing: padding at bottom */}
                 {!isClosing && <div style={{ height: 24 }} />}
               </motion.div>
             </AnimatePresence>
@@ -527,7 +484,6 @@ export default function Council() {
           flexShrink: 0,
         }}
       >
-        {/* Participants */}
         <div style={{ display: 'flex', gap: isMobile ? 10 : 18, alignItems: 'center', overflow: 'hidden' }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, flexShrink: 0 }}>
             {presentCount}/{session.participants.length}
@@ -544,7 +500,6 @@ export default function Council() {
           ))}
         </div>
 
-        {/* Session reference */}
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
           {!isMobile && (
             <>
@@ -556,7 +511,7 @@ export default function Council() {
           )}
           <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)' }} />
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-            In Session
+            En Sesión
           </span>
         </div>
       </div>

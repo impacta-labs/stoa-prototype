@@ -57,7 +57,7 @@ export default function Chamber() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8, flexWrap: 'wrap' as const, gap: 6 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' as const }}>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-                Chamber
+                Sala de Decisión
               </span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>
@@ -65,19 +65,19 @@ export default function Chamber() {
               </span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: verdictState === 'settled' ? 'var(--stoa-resolve)' : 'var(--stoa-gold)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-                {verdictState === 'settled' ? 'Settled' : 'In Deliberation'}
+                {verdictState === 'settled' ? 'Resuelta' : 'En Deliberación'}
               </span>
               {verdictState !== 'settled' && (
                 <>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: conditionsMet === d.resolutionConditions.length ? 'var(--stoa-resolve)' : 'var(--stoa-amber)', letterSpacing: '0.06em' }}>
-                    {conditionsMet}/{d.resolutionConditions.length} conditions met
+                    {conditionsMet}/{d.resolutionConditions.length} condiciones cumplidas
                   </span>
                 </>
               )}
             </div>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.03em' }}>
-              Opened {d.opened} · Due {d.deadline}
+              Abierta {d.opened} · Plazo {d.deadline}
             </span>
           </div>
 
@@ -101,10 +101,10 @@ export default function Chamber() {
           {!isMobile && (
             <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
               {[
-                { label: 'Opened', done: true },
-                { label: verdictState === 'settled' ? 'Deliberated' : 'Deliberating', active: verdictState !== 'settled', done: verdictState === 'settled' },
-                { label: verdictState === 'settled' ? 'Settled' : 'Verdict pending', active: verdictState === 'settled', done: verdictState === 'settled' },
-                { label: 'Memory', done: verdictState === 'settled' },
+                { label: 'Abierta', done: true },
+                { label: verdictState === 'settled' ? 'Deliberada' : 'Deliberando', active: verdictState !== 'settled', done: verdictState === 'settled' },
+                { label: verdictState === 'settled' ? 'Resuelta' : 'Resolución pendiente', active: verdictState === 'settled', done: verdictState === 'settled' },
+                { label: 'Memoria', done: verdictState === 'settled' },
               ].map((stage, i) => (
                 <span key={stage.label} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
                   <span style={{
@@ -125,20 +125,20 @@ export default function Chamber() {
           {/* Operational metadata */}
           <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '3px 16px' }}>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-              {d.daysActive}d active
+              {d.daysActive}d activa
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-              {d.deliberationEntries} entries
+              {d.deliberationEntries} entradas
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-              Last: {d.lastActivity}
+              Última: {d.lastActivity}
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-              Owner: {d.owner}
+              Responsable: {d.owner}
             </span>
             {d.relatedMemory && (
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                See: {d.relatedMemory} · Precedes: {d.precedent}
+                Ver: {d.relatedMemory} · Precede a: {d.precedent}
               </span>
             )}
           </div>
@@ -159,11 +159,11 @@ export default function Chamber() {
             borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
           }}
         >
-          <SectionHeader label="Frame" />
+          <SectionHeader label="Encuadre" />
           <p
             style={{
               fontFamily: 'var(--font-serif)',
-              fontSize: isMobile ? 13 : 13,
+              fontSize: 13,
               color: 'var(--stoa-ink)',
               margin: '10px 0 0',
               lineHeight: 1.75,
@@ -183,7 +183,7 @@ export default function Chamber() {
             borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
           }}
         >
-          <SectionHeader label="Context" />
+          <SectionHeader label="Contexto" />
           <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 12 }}>
             {d.context.map((c) => (
               <div key={c.heading}>
@@ -198,9 +198,9 @@ export default function Chamber() {
           </div>
         </motion.div>
 
-        {/* Field of Options */}
+        {/* Options */}
         <motion.div variants={settle} style={{ padding: isMobile ? '18px 20px' : '18px 40px 18px 20px' }}>
-          <SectionHeader label="Field of Options" />
+          <SectionHeader label="Opciones" />
           <div style={{ marginTop: 10 }}>
             {d.options.map((opt, i) => (
               <div
@@ -230,6 +230,89 @@ export default function Chamber() {
         </motion.div>
       </div>
 
+      {/* Impacto en Negocio */}
+      <motion.div
+        variants={deposit}
+        initial="hidden"
+        animate="visible"
+        style={{ padding: isMobile ? '16px 20px' : '16px 40px', borderBottom: '1px solid var(--stoa-rule)', backgroundColor: 'var(--stoa-surface-1)' }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
+          <SectionHeader label="Impacto en Negocio" />
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
+            Estado de evidencia: {d.businessImpact.evidenceStatus}
+          </span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: isMobile ? 12 : 24 }}>
+          <div>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 5px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
+              Hipótesis de impacto
+            </p>
+            <p style={{ fontFamily: 'var(--font-serif)', fontSize: 12, color: 'var(--stoa-ink)', margin: '0 0 10px', lineHeight: 1.6, fontStyle: 'italic' }}>
+              {d.businessImpact.hypothesis}
+            </p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.05em' }}>
+              Palanca de cuenta de explotación
+            </p>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-gold)', margin: '0 0 10px' }}>
+              {d.businessImpact.plLever}
+            </p>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.05em' }}>
+              Efecto operativo esperado
+            </p>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.5 }}>
+              {d.businessImpact.operationalEffect}
+            </p>
+          </div>
+          <div>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 6px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
+              Indicadores tempranos
+            </p>
+            {d.businessImpact.leadingIndicators.map((ind, i) => (
+              <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 4 }}>
+                <div style={{ width: 3, height: 3, borderRadius: '50%', backgroundColor: 'var(--stoa-ink-3)', marginTop: 5, flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', lineHeight: 1.4 }}>{ind}</span>
+              </div>
+            ))}
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '12px 0 6px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
+              Indicadores finales
+            </p>
+            {d.businessImpact.laggingIndicators.map((ind, i) => (
+              <div key={i} style={{ display: 'flex', gap: 6, alignItems: 'flex-start', marginBottom: 4 }}>
+                <div style={{ width: 3, height: 3, borderRadius: '50%', backgroundColor: 'var(--stoa-ink-3)', marginTop: 5, flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', lineHeight: 1.4 }}>{ind}</span>
+              </div>
+            ))}
+          </div>
+          <div>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 5px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
+              Riesgo de no actuar
+            </p>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-amber)', margin: '0 0 10px', lineHeight: 1.5 }}>
+              {d.businessImpact.riskOfInaction}
+            </p>
+            <div style={{ display: 'flex', gap: 16 }}>
+              <div>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 2px', letterSpacing: '0.05em' }}>
+                  Responsable
+                </p>
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: 0 }}>
+                  {d.businessImpact.responsible}
+                </p>
+              </div>
+              <div>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 2px', letterSpacing: '0.05em' }}>
+                  Horizonte de revisión
+                </p>
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: 0 }}>
+                  {d.businessImpact.reviewHorizon}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+
       {/* Stakeholders */}
       <motion.div
         variants={deposit}
@@ -237,18 +320,17 @@ export default function Chamber() {
         animate="visible"
         style={{ padding: isMobile ? '16px 20px' : '16px 40px', borderBottom: '1px solid var(--stoa-rule)' }}
       >
-        {/* Stakeholder status bar */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', paddingBottom: 9, borderBottom: '1px solid var(--stoa-rule)', marginBottom: 10 }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
             <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, fontWeight: 500, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-              Stakeholders
+              Participantes
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-              {respondedCount} of {d.stakeholders.length} voices
+              {respondedCount} de {d.stakeholders.length} posiciones
             </span>
           </div>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-resolve)', letterSpacing: '0.04em' }}>
-            All positions submitted · Last: {lastContributor.name.split(' ')[1]} {lastContributor.lastContribution}
+            Todas las posiciones recibidas · Última: {lastContributor.name.split(' ')[1]} {lastContributor.lastContribution}
           </span>
         </div>
         <div>
@@ -258,7 +340,7 @@ export default function Chamber() {
               variants={depositItem}
               style={{
                 display: isMobile ? 'flex' : 'grid',
-                gridTemplateColumns: isMobile ? undefined : '156px 84px 120px 1fr 96px',
+                gridTemplateColumns: isMobile ? undefined : '156px 120px 120px 1fr 96px',
                 flexDirection: isMobile ? 'column' as const : undefined,
                 gap: isMobile ? 2 : 14,
                 padding: '8px 0',
@@ -286,9 +368,9 @@ export default function Chamber() {
                   fontFamily: 'var(--font-mono)',
                   fontSize: 10,
                   color:
-                    s.position.toLowerCase().includes('favour') || s.position.toLowerCase().includes('strongly')
+                    s.position.toLowerCase().includes('favor') || s.position.toLowerCase().includes('firmemente')
                       ? 'var(--stoa-resolve)'
-                      : s.position.toLowerCase().includes('concern')
+                      : s.position.toLowerCase().includes('reservas') || s.position.toLowerCase().includes('preocup')
                       ? 'var(--stoa-amber)'
                       : 'var(--stoa-ink-2)',
                   letterSpacing: '0.02em',
@@ -325,7 +407,7 @@ export default function Chamber() {
             borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
           }}
         >
-          <SectionHeader label="Deliberation" meta={`${d.deliberation.length} entries · ${d.daysActive} days`} />
+          <SectionHeader label="Deliberación" meta={`${d.deliberation.length} entradas · ${d.daysActive} días`} />
           <div style={{ marginTop: 10 }}>
             {d.deliberation.map((entry, i) => (
               <motion.div
@@ -357,9 +439,9 @@ export default function Chamber() {
           </div>
         </motion.div>
 
-        {/* Dissent + Predictions */}
+        {/* Dissent + Resolution Conditions + Predictions */}
         <motion.div variants={settle} style={{ padding: isMobile ? '16px 20px' : '16px 40px 16px 20px' }}>
-          <SectionHeader label="Dissent" />
+          <SectionHeader label="Disenso" />
           <div
             style={{
               marginTop: 10,
@@ -386,9 +468,9 @@ export default function Chamber() {
             </p>
           </div>
 
-          {/* Resolution conditions */}
+          {/* Condiciones de Resolución */}
           <div style={{ marginTop: 20 }}>
-            <SectionHeader label="Resolution Conditions" meta={`${conditionsMet} of ${d.resolutionConditions.length} met`} />
+            <SectionHeader label="Condiciones de Resolución" meta={`${conditionsMet} de ${d.resolutionConditions.length} cumplidas`} />
             <div style={{ marginTop: 8 }}>
               {d.resolutionConditions.map((rc) => (
                 <div
@@ -420,7 +502,7 @@ export default function Chamber() {
                         {rc.owner}
                       </span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: rc.satisfied ? 'var(--stoa-resolve)' : 'var(--stoa-amber)', letterSpacing: '0.03em' }}>
-                        {rc.satisfied ? 'Met' : `Due ${rc.due}`}
+                        {rc.satisfied ? 'Cumplida' : `Plazo ${rc.due}`}
                       </span>
                     </div>
                   </div>
@@ -429,9 +511,9 @@ export default function Chamber() {
             </div>
           </div>
 
-          {/* Predictions */}
+          {/* Predicciones */}
           <div style={{ marginTop: 20 }}>
-            <SectionHeader label="Predictions" meta="Weighted probability" />
+            <SectionHeader label="Predicciones" meta="Probabilidad ponderada" />
             <div style={{ marginTop: 8 }}>
               {d.predictions.map((p) => (
                 <ProbabilityRow key={p.label} label={p.label} probability={p.probability} />
@@ -463,10 +545,10 @@ export default function Chamber() {
                 <div>
                   <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 7 }}>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
-                      Verdict Settled
+                      Resolución Registrada
                     </span>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                      {new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                      {new Date().toLocaleDateString('es-ES', { day: '2-digit', month: 'short', year: 'numeric' })}
                     </span>
                   </div>
                   <p style={{ fontFamily: 'var(--font-serif)', fontSize: isMobile ? 15 : 17, fontWeight: 400, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.3 }}>
@@ -474,12 +556,11 @@ export default function Chamber() {
                   </p>
                 </div>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
-                  {d.id} · Resolved
+                  {d.id} · Resuelta
                 </span>
               </div>
               <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '12px 0 0', lineHeight: 1.55 }}>
-                This decision has entered the Memory Layer. It will be available as precedent for future deliberations.
-                A memory thread reference will be assigned by the system.
+                Esta decisión ha entrado en la Memoria Estratégica. Estará disponible como precedente para deliberaciones futuras. El sistema asignará una referencia de hilo de memoria.
               </p>
             </motion.div>
           ) : verdictState === 'committing' ? (
@@ -490,9 +571,9 @@ export default function Chamber() {
               transition={{ duration: 0.7, ease: 'easeIn' }}
               style={{ padding: isMobile ? '16px 18px' : '20px 24px', backgroundColor: 'var(--stoa-surface-1)', border: '1px solid var(--stoa-border)' }}
             >
-              <SectionHeader label="Verdict" />
+              <SectionHeader label="Resolución" />
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: '10px 0 0', letterSpacing: '0.05em' }}>
-                Settling…
+                Registrando…
               </p>
             </motion.div>
           ) : (
@@ -504,10 +585,10 @@ export default function Chamber() {
               style={{ padding: isMobile ? '16px 18px' : '20px 24px', backgroundColor: 'var(--stoa-surface-1)', border: '1px solid var(--stoa-border)' }}
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
-                <SectionHeader label="Verdict" meta="Open — Pending deliberation" />
+                <SectionHeader label="Resolución" meta="Abierta — En deliberación" />
                 {conditionsMet < d.resolutionConditions.length && (
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.06em' }}>
-                    {d.resolutionConditions.length - conditionsMet} precondition{d.resolutionConditions.length - conditionsMet > 1 ? 's' : ''} unmet
+                    {d.resolutionConditions.length - conditionsMet} precondición{d.resolutionConditions.length - conditionsMet > 1 ? 'es' : ''} sin cumplir
                   </span>
                 )}
               </div>
@@ -554,11 +635,11 @@ export default function Chamber() {
                     transition: 'all 0.15s ease',
                   }}
                 >
-                  Commit Verdict
+                  Registrar Resolución
                 </button>
                 {!selectedVerdict && (
                   <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-                    Select a verdict to proceed
+                    Selecciona una opción para continuar
                   </span>
                 )}
               </div>

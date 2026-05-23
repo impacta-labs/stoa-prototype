@@ -4,6 +4,13 @@ import SectionHeader from '../components/primitives/SectionHeader'
 import { useIsMobile } from '../hooks/useViewport'
 import { memoryThread } from '../data/fixtures'
 
+const hypothesisColor: Record<string, string> = {
+  'confirmada':              'var(--stoa-resolve)',
+  'parcialmente confirmada': 'var(--stoa-gold)',
+  'refutada':                'var(--stoa-amber)',
+  'inconclusa':              'var(--stoa-ink-3)',
+}
+
 export default function ReadingRoom() {
   const isMobile = useIsMobile()
   const t = memoryThread
@@ -28,11 +35,11 @@ export default function ReadingRoom() {
       >
         <motion.div variants={settle} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-            Reading Room
+            Archivo Estratégico
           </span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
-            Alpha Espai Archive
+            Archivo Alpha Espai
           </span>
         </motion.div>
         <motion.div variants={settle} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
@@ -43,7 +50,7 @@ export default function ReadingRoom() {
             <>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                Settled {t.settled}
+                Resuelta {t.settled}
               </span>
             </>
           )}
@@ -77,11 +84,11 @@ export default function ReadingRoom() {
                   textTransform: 'uppercase' as const,
                 }}
               >
-                Memory Thread
+                Hilo de Memoria
               </span>
               {!isMobile && (
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                  Settled {t.settled}
+                  Resuelta {t.settled}
                 </span>
               )}
             </div>
@@ -110,7 +117,7 @@ export default function ReadingRoom() {
                 padding: '12px 0',
                 borderTop: '1px solid var(--stoa-rule-strong)',
                 borderBottom: '1px solid var(--stoa-rule)',
-                marginBottom: 36,
+                marginBottom: 24,
                 flexWrap: 'wrap' as const,
               }}
             >
@@ -125,6 +132,31 @@ export default function ReadingRoom() {
               </span>
             </div>
           </motion.div>
+
+          {/* Retrospective / Hypothesis Status */}
+          {(t as { hypothesisStatus?: string; retrospective?: string }).hypothesisStatus && (
+            <motion.div variants={depositItem} style={{ marginBottom: 24 }}>
+              <div
+                style={{
+                  padding: '12px 14px',
+                  borderLeft: `2px solid ${hypothesisColor[(t as { hypothesisStatus: string }).hypothesisStatus] || 'var(--stoa-ink-3)'}`,
+                  backgroundColor: 'rgba(196, 149, 42, 0.03)',
+                }}
+              >
+                <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 5 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: hypothesisColor[(t as { hypothesisStatus: string }).hypothesisStatus] || 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
+                    Hipótesis {(t as { hypothesisStatus: string }).hypothesisStatus}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
+                    · Resultado retrospectivo · {t.relatedDecision}
+                  </span>
+                </div>
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.6 }}>
+                  {(t as { retrospective?: string }).retrospective}
+                </p>
+              </div>
+            </motion.div>
+          )}
 
           {/* Active citation notice */}
           {t.citedIn && t.citedIn.length > 0 && (
@@ -141,7 +173,7 @@ export default function ReadingRoom() {
                 }}
               >
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.09em', textTransform: 'uppercase' as const, flexShrink: 0 }}>
-                  Cited in active deliberation
+                  Citado en deliberación activa
                 </span>
                 {t.citedIn.map(ref => (
                   <span key={ref} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>
@@ -187,7 +219,7 @@ export default function ReadingRoom() {
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap' as const, gap: 4 }}>
               <div style={{ display: 'flex', gap: 6, alignItems: 'baseline' }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-                  Dissent Recorded
+                  Disenso Registrado
                 </span>
               </div>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
@@ -219,9 +251,9 @@ export default function ReadingRoom() {
           {/* Archive footer */}
           <motion.div variants={depositItem} style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid var(--stoa-rule)' }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.06em', lineHeight: 1.7 }}>
-              This thread entered the Memory Layer on {t.settled}.<br />
-              Accessible to all future deliberations.<br />
-              Currently cited by {t.citedIn.length} active decision{t.citedIn.length !== 1 ? 's' : ''}.
+              Este hilo entró en la Memoria Estratégica el {t.settled}.<br />
+              Accesible a todas las deliberaciones futuras.<br />
+              Citado actualmente por {t.citedIn.length} decisión{t.citedIn.length !== 1 ? 'es' : ''} activa{t.citedIn.length !== 1 ? 's' : ''}.
             </p>
           </motion.div>
         </motion.div>
@@ -238,15 +270,15 @@ export default function ReadingRoom() {
             }}
           >
             <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
-              <SectionHeader label="Thread Metadata" />
+              <SectionHeader label="Metadatos del Hilo" />
               <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column' }}>
                 {[
-                  { label: 'Reference',  value: t.id },
-                  { label: 'Settled',    value: t.settled },
-                  { label: 'Author',     value: t.author },
-                  { label: 'Decision',   value: t.relatedDecision },
-                  { label: 'Views',      value: `${t.views} since settlement` },
-                  { label: 'Accessed',   value: '23 May 2026 · 09:42' },
+                  { label: 'Referencia', value: t.id },
+                  { label: 'Resuelta',   value: t.settled },
+                  { label: 'Autor',      value: t.author },
+                  { label: 'Decisión',   value: t.relatedDecision },
+                  { label: 'Consultas',  value: `${t.views} desde la resolución` },
+                  { label: 'Consultado', value: '23 May 2026 · 09:42' },
                 ].map(({ label, value }, i, arr) => (
                   <div
                     key={label}
@@ -270,7 +302,7 @@ export default function ReadingRoom() {
             </motion.div>
 
             <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
-              <SectionHeader label="Tags" />
+              <SectionHeader label="Etiquetas" />
               <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap' as const, gap: 5 }}>
                 {t.tags.map((tag) => (
                   <span
@@ -291,7 +323,7 @@ export default function ReadingRoom() {
             </motion.div>
 
             <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
-              <SectionHeader label="Cited In" />
+              <SectionHeader label="Citado en" />
               <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {t.citedIn.map((ref) => (
                   <span
@@ -307,13 +339,13 @@ export default function ReadingRoom() {
                   </span>
                 ))}
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', marginTop: 2 }}>
-                  Active deliberation references this thread as precedent.
+                  La deliberación activa cita este hilo como precedente.
                 </span>
               </div>
             </motion.div>
 
             <motion.div variants={depositItem}>
-              <SectionHeader label="Related Threads" />
+              <SectionHeader label="Hilos Relacionados" />
               <div style={{ marginTop: 10, display: 'flex', flexDirection: 'column', gap: 6 }}>
                 {t.relatedThreads.map((ref) => (
                   <span
@@ -333,13 +365,13 @@ export default function ReadingRoom() {
 
             <motion.div variants={depositItem} style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--stoa-rule)' }}>
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 8px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
-                Now Informing
+                Informando actualmente
               </p>
               <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: '0 0 6px', lineHeight: 1.55 }}>
-                D-042 is drawing on this thread as precedent for the Lisbon satellite decision — specifically, the founding-question problem this thread identifies.
+                D-042 está usando este hilo como precedente para la decisión del satélite de Lisboa — específicamente, el problema de la pregunta fundadora que este hilo identifica.
               </p>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>
-                D-042 · Active deliberation
+                D-042 · Deliberación activa
               </span>
             </motion.div>
           </motion.div>

@@ -30,21 +30,21 @@ export default function Weather() {
       >
         <motion.div variants={settle} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-            Weather
+            Clima Organizacional
           </span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
           <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-            Organizational climate reading
+            Lectura del clima organizativo
           </span>
           {unlocked && !isMobile && (
             <>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                Generated {w.generatedAt}
+                Generado {w.generatedAt}
               </span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
               <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-                Based on {w.basedOn}
+                Basado en {w.basedOn}
               </span>
             </>
           )}
@@ -65,7 +65,7 @@ export default function Weather() {
               transition: 'border-color 0.15s ease',
             }}
           >
-            {unlocked ? 'Lock' : 'Unlock'}
+            {unlocked ? 'Cerrar' : 'Abrir'}
           </button>
         </motion.div>
       </div>
@@ -96,7 +96,7 @@ export default function Weather() {
                   textTransform: 'uppercase' as const,
                 }}
               >
-                Reading unavailable
+                Lectura no disponible
               </p>
               <p
                 style={{
@@ -109,7 +109,7 @@ export default function Weather() {
                   maxWidth: 560,
                 }}
               >
-                The organizational climate is not yet readable.
+                El clima organizativo no es aún legible.
               </p>
               <p
                 style={{
@@ -121,7 +121,7 @@ export default function Weather() {
                   maxWidth: 520,
                 }}
               >
-                Weather is derived from the deliberation record: decisions in motion, voices captured, tensions logged, patterns repeated. Until sufficient operational data has accumulated, the reading would be noise rather than signal.
+                El clima organizativo se deriva del registro de deliberaciones: decisiones en curso, posiciones registradas, tensiones documentadas, patrones repetidos. Hasta que se acumule suficiente data operativa, la lectura sería ruido en lugar de señal.
               </p>
             </div>
 
@@ -131,7 +131,7 @@ export default function Weather() {
                   {w.thresholdMet}
                 </span>
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-3)' }}>
-                  of {w.thresholdRequired} threshold indicators met
+                  de {w.thresholdRequired} indicadores de umbral cumplidos
                 </span>
               </div>
               <p
@@ -144,7 +144,7 @@ export default function Weather() {
                   margin: 0,
                 }}
               >
-                {w.thresholdMet >= w.thresholdRequired ? 'Threshold met — reading available' : 'Accumulating deliberation'}
+                {w.thresholdMet >= w.thresholdRequired ? 'Umbral alcanzado — lectura disponible' : 'Acumulando deliberación'}
               </p>
             </div>
           </motion.div>
@@ -160,7 +160,7 @@ export default function Weather() {
             {/* Context strip */}
             <div style={{ padding: isMobile ? '14px 20px' : '16px 40px', borderBottom: '1px solid var(--stoa-rule)', backgroundColor: 'var(--stoa-surface-1)' }}>
               <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.65, maxWidth: 720 }}>
-                All readings below are derived from Alpha Espai's deliberation record. Storm fronts trace to specific decisions currently in motion; calm zones reflect operational ground that has been settled and is no longer under pressure. The backtest at the foot of this reading describes what this surface would have shown two years ago.
+                Todas las lecturas siguientes se derivan del registro de deliberaciones de Alpha Espai. Los frentes de tormenta tienen trazabilidad directa a decisiones en curso; las zonas de calma reflejan terreno operativo que ha sido resuelto y ya no está bajo presión. La lectura retrospectiva al final describe qué habría mostrado esta superficie hace dos años.
               </p>
             </div>
 
@@ -180,7 +180,7 @@ export default function Weather() {
                   borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
                 }}
               >
-                <SectionHeader label="Pressure Systems" />
+                <SectionHeader label="Sistemas de Presión" />
                 <div style={{ marginTop: 14 }}>
                   {w.pressureSystems.map((ps, i) => (
                     <motion.div
@@ -212,7 +212,7 @@ export default function Weather() {
                       </p>
                       {'tracedTo' in ps && (ps as { tracedTo?: string[] }).tracedTo && (
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>Traced:</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>Trazado:</span>
                           {(ps as { tracedTo: string[] }).tracedTo.map(ref => (
                             <span key={ref} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>{ref}</span>
                           ))}
@@ -230,7 +230,7 @@ export default function Weather() {
                 animate="visible"
                 style={{ padding: isMobile ? '20px 20px' : '24px 40px 24px 28px' }}
               >
-                <SectionHeader label="Prevailing Winds" />
+                <SectionHeader label="Vientos Predominantes" />
                 <motion.div variants={depositItem} style={{ marginTop: 14, marginBottom: 24 }}>
                   <div
                     style={{
@@ -239,7 +239,7 @@ export default function Weather() {
                     }}
                   >
                     <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 500, color: 'var(--stoa-ink)', margin: '0 0 5px' }}>
-                      Direction: {w.prevailingWinds.direction}
+                      Dirección: {w.prevailingWinds.direction}
                     </p>
                     <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.65 }}>
                       {w.prevailingWinds.description}
@@ -247,7 +247,7 @@ export default function Weather() {
                   </div>
                 </motion.div>
 
-                <SectionHeader label="Calm" />
+                <SectionHeader label="Zonas de Calma" />
                 <div style={{ marginTop: 14 }}>
                   {w.calm.map((c, i) => (
                     <motion.div
@@ -277,7 +277,7 @@ export default function Weather() {
               animate="visible"
               style={{ padding: isMobile ? '20px 20px' : '24px 40px', borderBottom: '1px solid var(--stoa-rule)' }}
             >
-              <SectionHeader label="Storm Fronts" meta="Active conditions" />
+              <SectionHeader label="Frentes de Tormenta" meta="Condiciones activas" />
               <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
                 {w.stormFronts.map((sf, i) => (
                   <motion.div
@@ -310,7 +310,7 @@ export default function Weather() {
                     </p>
                     {'tracedTo' in sf && (sf as { tracedTo?: string[] }).tracedTo && (
                       <div style={{ display: 'flex', gap: 6 }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>Traced:</span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>Trazado:</span>
                         {(sf as { tracedTo: string[] }).tracedTo.map(ref => (
                           <span key={ref} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>{ref}</span>
                         ))}
@@ -321,7 +321,39 @@ export default function Weather() {
               </div>
             </motion.div>
 
-            {/* Backtest */}
+            {/* Patrones de Innovación */}
+            {w.innovationPatterns && w.innovationPatterns.length > 0 && (
+              <motion.div
+                variants={deposit}
+                initial="hidden"
+                animate="visible"
+                style={{ padding: isMobile ? '20px 20px' : '24px 40px', borderBottom: '1px solid var(--stoa-rule)' }}
+              >
+                <SectionHeader label="Patrones de Innovación" meta="Derivados del registro de decisiones" />
+                <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 16 }}>
+                  {w.innovationPatterns.map((pattern, i) => (
+                    <motion.div key={i} variants={depositItem}>
+                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, color: 'var(--stoa-ink)', margin: '0 0 4px' }}>
+                        {pattern.label}
+                      </p>
+                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: '0 0 5px', lineHeight: 1.65 }}>
+                        {pattern.description}
+                      </p>
+                      {pattern.tracedTo && (
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>Trazado:</span>
+                          {pattern.tracedTo.map((ref: string) => (
+                            <span key={ref} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>{ref}</span>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Lectura Retrospectiva */}
             <motion.div
               variants={settle}
               style={{
@@ -330,7 +362,7 @@ export default function Weather() {
                 flex: 1,
               }}
             >
-              <SectionHeader label="Backtest Reading" meta={`Period: ${w.backtestReading.period}`} />
+              <SectionHeader label="Lectura Retrospectiva" meta={`Período: ${w.backtestReading.period}`} />
               <p
                 style={{
                   fontFamily: 'var(--font-serif)',

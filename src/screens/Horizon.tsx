@@ -5,9 +5,12 @@ import { useIsMobile } from '../hooks/useViewport'
 import { horizonData } from '../data/fixtures'
 
 const convictionColor: Record<string, string> = {
-  High:   'var(--stoa-gold)',
-  Medium: 'var(--stoa-ink-2)',
-  Low:    'var(--stoa-ink-3)',
+  Alta:  'var(--stoa-gold)',
+  Media: 'var(--stoa-ink-2)',
+  Baja:  'var(--stoa-ink-3)',
+  High:  'var(--stoa-gold)',
+  Medium:'var(--stoa-ink-2)',
+  Low:   'var(--stoa-ink-3)',
 }
 
 export default function Horizon() {
@@ -34,16 +37,16 @@ export default function Horizon() {
       >
         <motion.div variants={settle} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-            Horizon
+            Horizonte
           </span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
           <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-            Forward register · 2026–2028
+            Registro prospectivo · 2026–2028
           </span>
         </motion.div>
         {!isMobile && (
           <motion.span variants={settle} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
-            Updated 23 May 2026 · {h.bets.length} bets · {h.triggers.length} triggers
+            Actualizado 23 May 2026 · {h.bets.length} apuestas · {h.triggers.length} condiciones
           </motion.span>
         )}
       </div>
@@ -67,7 +70,7 @@ export default function Horizon() {
             borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
           }}
         >
-          <SectionHeader label="Bets" meta={`${h.bets.length} registered`} />
+          <SectionHeader label="Apuestas Estratégicas" meta={`${h.bets.length} registradas`} />
           <div style={{ marginTop: 14 }}>
             {h.bets.map((bet, i) => (
               <motion.div
@@ -125,7 +128,7 @@ export default function Horizon() {
                     fontFamily: 'var(--font-sans)',
                     fontSize: 12,
                     color: 'var(--stoa-ink-2)',
-                    margin: 0,
+                    margin: '0 0 8px',
                     lineHeight: 1.65,
                     borderLeft: '1px solid var(--stoa-rule)',
                     paddingLeft: 12,
@@ -133,6 +136,35 @@ export default function Horizon() {
                 >
                   {bet.rationale}
                 </p>
+                {(bet as { businessThesis?: string }).businessThesis && (
+                  <div style={{ borderLeft: '2px solid var(--stoa-gold)', paddingLeft: 12, marginBottom: 8 }}>
+                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', margin: '0 0 3px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
+                      Tesis de negocio
+                    </p>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: '0 0 4px', lineHeight: 1.55 }}>
+                      {(bet as { businessThesis: string }).businessThesis}
+                    </p>
+                    {(bet as { economicLever?: string }).economicLever && (
+                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0 }}>
+                        Palanca: {(bet as { economicLever: string }).economicLever}
+                      </p>
+                    )}
+                  </div>
+                )}
+                {(bet as { leadingIndicators?: string[] }).leadingIndicators && !isMobile && (
+                  <div style={{ display: 'flex', gap: 24, paddingLeft: 12 }}>
+                    <div>
+                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>Indicadores tempranos</p>
+                      {(bet as { leadingIndicators: string[] }).leadingIndicators.map((ind, j) => (
+                        <p key={j} style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '2px 0 0' }}>{ind}</p>
+                      ))}
+                    </div>
+                    <div>
+                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>Próx. revisión</p>
+                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: '2px 0 0' }}>{(bet as { nextReview?: string }).nextReview || '—'}</p>
+                    </div>
+                  </div>
+                )}
               </motion.div>
             ))}
           </div>
@@ -145,7 +177,7 @@ export default function Horizon() {
           animate="visible"
           style={{ padding: isMobile ? '20px 20px' : '24px 40px 24px 24px' }}
         >
-          <SectionHeader label="Predictions" meta="Weighted" />
+          <SectionHeader label="Predicciones" meta="Ponderadas" />
           <div style={{ marginTop: 14 }}>
             {h.predictions.map((p, i) => (
               <motion.div
@@ -200,7 +232,7 @@ export default function Horizon() {
             borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
           }}
         >
-          <SectionHeader label="Trigger Conditions" meta={`${h.triggers.length} active`} />
+          <SectionHeader label="Condiciones de Activación" meta={`${h.triggers.length} activas`} />
           <div style={{ marginTop: 14 }}>
             {h.triggers.map((t, i) => (
               <motion.div
@@ -259,7 +291,7 @@ export default function Horizon() {
           animate="visible"
           style={{ padding: isMobile ? '20px 20px' : '24px 40px 24px 28px' }}
         >
-          <SectionHeader label="Watched Signals" meta={`${h.watchedSignals.length} signals`} />
+          <SectionHeader label="Señales Vigiladas" meta={`${h.watchedSignals.length} señales`} />
           <div style={{ marginTop: 14 }}>
             {h.watchedSignals.map((s, i) => (
               <motion.div
