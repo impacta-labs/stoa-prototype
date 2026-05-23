@@ -460,7 +460,8 @@ export function generarResumenConsejo(decisions: UserDecision[], sessionRef: str
     ``,
     `DECISIONES RESUELTAS (${resueltas.length})`,
     ...resueltas.map(
-      (d) => `· ${d.id} · ${d.titulo}\n  Resolución: ${d.selectedVerdict}\n  Palanca: ${d.businessImpact.plLever}`
+      (d) =>
+        `· ${d.id} · ${d.titulo}\n  Responsable: ${d.owner || 'Sin asignar'}\n  Resolución: ${d.selectedVerdict}${d.prediccion ? `\n  Predicción: ${d.prediccion}` : ''}\n  Palanca: ${d.businessImpact.plLever}\n  Revisión: ${d.businessImpact.reviewHorizon}`
     ),
     resueltas.length === 0 ? '· Ninguna decisión resuelta en esta sesión' : '',
     ``,

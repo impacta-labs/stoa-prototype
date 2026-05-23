@@ -179,6 +179,7 @@ export default function Council() {
   const isMobile = useIsMobile()
   const session = councilSession
   const { decisions } = useDecisionsStore()
+  const userResolved = decisions.filter((d) => d.status === 'resuelta')
 
   const summaryText = generarResumenConsejo(decisions, session.sessionRef, session.date)
 
@@ -451,6 +452,63 @@ export default function Council() {
               >
                 {currentStation.content.map((item, i) =>
                   renderStationItem(item, i, isClosing)
+                )}
+
+                {/* User resolved decisions from pilot */}
+                {userResolved.length > 0 && (
+                  <div style={{ paddingTop: 20, paddingBottom: 8, borderTop: '1px solid var(--stoa-rule)', marginTop: 8 }}>
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 14 }}>
+                      <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)', flexShrink: 0 }} />
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
+                        Resoluciones piloto · {userResolved.length}
+                      </span>
+                    </div>
+                    {userResolved.map((d, i) => (
+                      <div key={d.id} style={{ padding: '14px 0', borderBottom: i < userResolved.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
+                        <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginBottom: 6, flexWrap: 'wrap' as const }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.07em' }}>{d.id}</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>{d.tipoInnovacion}</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>{d.owner || 'Sin responsable'}</span>
+                        </div>
+                        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: '0 0 10px', lineHeight: 1.5 }}>
+                          {d.preguntaEstrategica}
+                        </p>
+                        {d.selectedVerdict && (
+                          <div style={{ display: 'flex', gap: 14, padding: '12px 0', alignItems: 'flex-start' }}>
+                            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0, paddingTop: 3 }}>
+                              <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)' }} />
+                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
+                                Acordado
+                              </span>
+                            </div>
+                            <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
+                              {d.selectedVerdict}
+                            </p>
+                          </div>
+                        )}
+                        {d.prediccion && (
+                          <div style={{ display: 'flex', gap: 14, padding: '8px 0', alignItems: 'flex-start' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, flexShrink: 0, width: 70 }}>
+                              Predicción
+                            </span>
+                            <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.55, flex: 1 }}>
+                              {d.prediccion}
+                            </p>
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' as const }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                            Revisión: {d.businessImpact.reviewHorizon}
+                          </span>
+                          {d.businessImpact.leadingIndicators.length > 0 && (
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                              {d.businessImpact.leadingIndicators[0]}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 )}
 
                 {/* Closing resolution footer */}

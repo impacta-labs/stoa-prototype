@@ -1,8 +1,10 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { chamberEnter, settle, depositItem, deposit } from '../lib/motion'
 import SectionHeader from '../components/primitives/SectionHeader'
 import { useIsMobile } from '../hooks/useViewport'
 import { memoryThread } from '../data/fixtures'
+import { useDecisionsStore } from '../store/decisions'
 
 const hypothesisColor: Record<string, string> = {
   'confirmada':              'var(--stoa-resolve)',
@@ -14,6 +16,10 @@ const hypothesisColor: Record<string, string> = {
 export default function ReadingRoom() {
   const isMobile = useIsMobile()
   const t = memoryThread
+  const { decisions } = useDecisionsStore()
+  const userResolved = decisions
+    .filter((d) => d.status === 'resuelta')
+    .sort((a, b) => new Date(b.settledAt ?? 0).getTime() - new Date(a.settledAt ?? 0).getTime())
 
   return (
     <motion.div
@@ -56,6 +62,109 @@ export default function ReadingRoom() {
           )}
         </motion.div>
       </div>
+
+      {/* User resolved decisions */}
+      {userResolved.length > 0 && (
+        <motion.div
+          variants={deposit}
+          initial="hidden"
+          animate="visible"
+          style={{
+            padding: isMobile ? '20px 20px' : '24px 40px',
+            borderBottom: '1px solid var(--stoa-rule)',
+            backgroundColor: 'rgba(196, 149, 42, 0.02)',
+          }}
+        >
+          <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 16 }}>
+            <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)', flexShrink: 0 }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
+              Decisiones piloto · {userResolved.length} en archivo
+            </span>
+          </div>
+          {userResolved.map((d, i) => (
+            <motion.div
+              key={d.id}
+              variants={depositItem}
+              style={{
+                padding: '16px 0',
+                borderBottom: i < userResolved.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, marginBottom: 8, flexWrap: 'wrap' as const }}>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 5 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.08em' }}>{d.id}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>{d.tipoInnovacion}</span>
+                    {d.settledAt && (
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
+                        Resuelta {new Date(d.settledAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    )}
+                  </div>
+                  <Link to={`/chamber/${d.id}`} style={{ textDecoration: 'none' }}>
+                    <h3
+                      style={{
+                        fontFamily: 'var(--font-serif)',
+                        fontSize: isMobile ? 15 : 17,
+                        fontWeight: 400,
+                        color: 'var(--stoa-ink)',
+                        margin: '0 0 10px',
+                        lineHeight: 1.3,
+                        letterSpacing: '-0.01em',
+                      }}
+                    >
+                      {d.preguntaEstrategica}
+                    </h3>
+                  </Link>
+                </div>
+              </div>
+              {d.selectedVerdict && (
+                <div style={{ padding: '10px 14px', borderLeft: '2px solid var(--stoa-resolve)', marginBottom: 8 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>
+                    Resolución
+                  </span>
+                  <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.55 }}>
+                    {d.selectedVerdict}
+                  </p>
+                </div>
+              )}
+              {d.prediccion && (
+                <div style={{ padding: '10px 14px', borderLeft: '2px solid var(--stoa-ink-3)', marginBottom: 8 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>
+                    Predicción
+                  </span>
+                  <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.55 }}>
+                    {d.prediccion}
+                  </p>
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap' as const, marginTop: 6 }}>
+                {d.owner && (
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>{d.owner}</span>
+                )}
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                  Revisión: {d.businessImpact.reviewHorizon}
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>
+                  Evidencia: {d.businessImpact.evidenceStatus}
+                </span>
+              </div>
+              {d.businessImpact.leadingIndicators.length > 0 && (
+                <div style={{ marginTop: 8 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>
+                    Indicadores tempranos
+                  </span>
+                  {d.businessImpact.leadingIndicators.slice(0, 2).map((ind, j) => (
+                    <p key={j} style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '0 0 2px', lineHeight: 1.4 }}>
+                      · {ind}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </motion.div>
+      )}
 
       {/* Document */}
       <div

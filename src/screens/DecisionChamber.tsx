@@ -58,6 +58,7 @@ export default function DecisionChamber() {
   const [deliberationParticipant, setDeliberationParticipant] = useState('')
   const [editingHypothesis, setEditingHypothesis] = useState(false)
   const [hypothesisText, setHypothesisText] = useState('')
+  const [prediccionText, setPrediccionText] = useState('')
 
   const isSettled = decision ? (decision.status === 'resuelta' || verdictState === 'settled') : false
   const days = decision ? daysActive(decision.opened) : 0
@@ -83,10 +84,10 @@ export default function DecisionChamber() {
   }
 
   function handleCommitVerdict() {
-    if (!selectedVerdict) return
+    if (!selectedVerdict.trim()) return
     setVerdictState('committing')
     setTimeout(() => {
-      settleDecision(decision!.id, selectedVerdict)
+      settleDecision(decision!.id, selectedVerdict.trim(), prediccionText.trim() || undefined)
       setVerdictState('settled')
     }, 700)
   }
@@ -428,11 +429,21 @@ export default function DecisionChamber() {
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 5 }}>
                     Resolución registrada
                   </span>
-                  <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.5 }}>
+                  <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.55 }}>
                     {decision.selectedVerdict || selectedVerdict}
                   </p>
                 </div>
-                <div style={{ marginTop: 12, padding: '10px 14px', backgroundColor: 'var(--stoa-surface-1)' }}>
+                {(decision.prediccion || prediccionText) && (
+                  <div style={{ marginTop: 8, padding: '10px 14px', borderLeft: '2px solid var(--stoa-ink-3)' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>
+                      Predicción
+                    </span>
+                    <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.55 }}>
+                      {decision.prediccion || prediccionText}
+                    </p>
+                  </div>
+                )}
+                <div style={{ marginTop: 10, padding: '10px 14px', backgroundColor: 'var(--stoa-surface-1)' }}>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', display: 'block', marginBottom: 4 }}>
                     Esta decisión ha entrado en el Archivo Estratégico.
                   </span>
@@ -444,44 +455,63 @@ export default function DecisionChamber() {
             ) : (
               <div>
                 <SectionHeader label="Resolución" />
-                <PilotHint text="Elige la opción que mejor refleje el juicio del equipo. La resolución queda en el Archivo." />
+                <PilotHint text="Escribe la resolución o usa una opción como punto de partida. La predicción queda vinculada al archivo." />
                 <div style={{ marginTop: 10 }}>
                   {decision.verdictOptions.map((opt) => (
                     <button
                       key={opt}
-                      onClick={() => setSelectedVerdict(selectedVerdict === opt ? '' : opt)}
+                      onClick={() => setSelectedVerdict(opt)}
                       style={{
                         display: 'block',
                         width: '100%',
                         textAlign: 'left' as const,
                         fontFamily: 'var(--font-sans)',
-                        fontSize: 12,
+                        fontSize: 11,
                         color: selectedVerdict === opt ? 'var(--stoa-ink)' : 'var(--stoa-ink-3)',
                         backgroundColor: selectedVerdict === opt ? 'rgba(196, 149, 42, 0.08)' : 'transparent',
                         border: '1px solid ' + (selectedVerdict === opt ? 'var(--stoa-gold)' : 'var(--stoa-rule)'),
-                        padding: '10px 12px',
+                        padding: '7px 10px',
                         cursor: 'pointer',
-                        marginBottom: 6,
+                        marginBottom: 4,
                         lineHeight: 1.4,
                       }}
                     >
                       {opt}
                     </button>
                   ))}
+                  <textarea
+                    value={selectedVerdict}
+                    onChange={(e) => setSelectedVerdict(e.target.value)}
+                    placeholder="Escribe la resolución completa…"
+                    rows={3}
+                    style={{ width: '100%', fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule-strong)', padding: '9px 12px', outline: 'none', resize: 'vertical' as const, lineHeight: 1.55, boxSizing: 'border-box' as const, marginTop: 8 }}
+                  />
+                  <div style={{ marginTop: 12 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 5 }}>
+                      Predicción
+                    </span>
+                    <textarea
+                      value={prediccionText}
+                      onChange={(e) => setPrediccionText(e.target.value)}
+                      placeholder="¿Qué resultado esperas y en qué plazo?"
+                      rows={2}
+                      style={{ width: '100%', fontFamily: 'var(--font-serif)', fontSize: 12, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule)', padding: '8px 12px', outline: 'none', resize: 'vertical' as const, lineHeight: 1.55, boxSizing: 'border-box' as const }}
+                    />
+                  </div>
                   <button
                     onClick={handleCommitVerdict}
-                    disabled={!selectedVerdict || verdictState === 'committing'}
+                    disabled={!selectedVerdict.trim() || verdictState === 'committing'}
                     style={{
                       width: '100%',
                       fontFamily: 'var(--font-sans)',
                       fontSize: 12,
                       fontWeight: 500,
-                      color: selectedVerdict ? 'var(--stoa-bg)' : 'var(--stoa-ink-3)',
-                      backgroundColor: selectedVerdict ? 'var(--stoa-gold)' : 'var(--stoa-rule)',
+                      color: selectedVerdict.trim() ? 'var(--stoa-bg)' : 'var(--stoa-ink-3)',
+                      backgroundColor: selectedVerdict.trim() ? 'var(--stoa-gold)' : 'var(--stoa-rule)',
                       border: 'none',
                       padding: '11px 16px',
-                      cursor: selectedVerdict ? 'pointer' : 'default',
-                      marginTop: 4,
+                      cursor: selectedVerdict.trim() ? 'pointer' : 'default',
+                      marginTop: 10,
                       letterSpacing: '0.02em',
                     }}
                   >

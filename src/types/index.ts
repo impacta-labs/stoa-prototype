@@ -59,6 +59,7 @@ export interface UserDecision {
   businessImpact: BusinessImpact
   verdictOptions: string[]
   selectedVerdict: string | null
+  prediccion?: string
   settledAt: string | null
   deliberationEntries: DeliberationEntry[]
   resolutionConditions: ResolutionCondition[]

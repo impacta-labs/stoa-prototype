@@ -8,7 +8,7 @@ interface DecisionsState {
   showCreateModal: boolean
   addDecision: (d: UserDecision) => void
   updateDecision: (id: string, patch: Partial<UserDecision>) => void
-  settleDecision: (id: string, verdict: string, retrospectiva?: string) => void
+  settleDecision: (id: string, verdict: string, prediccion?: string, retrospectiva?: string) => void
   markConditionSatisfied: (decisionId: string, conditionId: string, satisfied: boolean) => void
   addDeliberationEntry: (decisionId: string, entry: Omit<DeliberationEntry, 'id'>) => void
   togglePilotMode: () => void
@@ -30,7 +30,7 @@ export const useDecisionsStore = create<DecisionsState>()(
           decisions: s.decisions.map((d) => (d.id === id ? { ...d, ...patch } : d)),
         })),
 
-      settleDecision: (id, verdict, retrospectiva) =>
+      settleDecision: (id, verdict, prediccion, retrospectiva) =>
         set((s) => ({
           decisions: s.decisions.map((d) =>
             d.id === id
@@ -38,6 +38,7 @@ export const useDecisionsStore = create<DecisionsState>()(
                   ...d,
                   status: 'resuelta' as const,
                   selectedVerdict: verdict,
+                  prediccion: prediccion !== undefined ? prediccion : d.prediccion,
                   settledAt: new Date().toISOString(),
                   retrospectiva: retrospectiva ?? d.retrospectiva,
                 }
