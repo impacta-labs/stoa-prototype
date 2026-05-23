@@ -109,7 +109,7 @@ export default function Weather() {
                   maxWidth: 560,
                 }}
               >
-                Weather emerges after sufficient deliberation has accumulated.
+                The organizational climate is not yet readable.
               </p>
               <p
                 style={{
@@ -121,9 +121,7 @@ export default function Weather() {
                   maxWidth: 520,
                 }}
               >
-                The Weather reading requires a minimum threshold of deliberation mass — enough decisions in
-                motion, enough voices recorded, enough time elapsed. Until that threshold is met, the reading
-                would be noise rather than signal.
+                Weather is derived from the deliberation record: decisions in motion, voices captured, tensions logged, patterns repeated. Until sufficient operational data has accumulated, the reading would be noise rather than signal.
               </p>
             </div>
 
@@ -159,6 +157,13 @@ export default function Weather() {
             exit={{ opacity: 0, transition: { duration: 0.2 } }}
             style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
           >
+            {/* Context strip */}
+            <div style={{ padding: isMobile ? '14px 20px' : '16px 40px', borderBottom: '1px solid var(--stoa-rule)', backgroundColor: 'var(--stoa-surface-1)' }}>
+              <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.65, maxWidth: 720 }}>
+                All readings below are derived from Alpha Espai's deliberation record. Storm fronts trace to specific decisions currently in motion; calm zones reflect operational ground that has been settled and is no longer under pressure. The backtest at the foot of this reading describes what this surface would have shown two years ago.
+              </p>
+            </div>
+
             {/* Pressure Systems + Winds */}
             <div
               className="stoa-col-2"

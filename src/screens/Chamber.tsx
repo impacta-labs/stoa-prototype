@@ -97,6 +97,31 @@ export default function Chamber() {
             {d.title}
           </h1>
 
+          {/* Decision lifecycle */}
+          {!isMobile && (
+            <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginBottom: 6 }}>
+              {[
+                { label: 'Opened', done: true },
+                { label: verdictState === 'settled' ? 'Deliberated' : 'Deliberating', active: verdictState !== 'settled', done: verdictState === 'settled' },
+                { label: verdictState === 'settled' ? 'Settled' : 'Verdict pending', active: verdictState === 'settled', done: verdictState === 'settled' },
+                { label: 'Memory', done: verdictState === 'settled' },
+              ].map((stage, i) => (
+                <span key={stage.label} style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 9,
+                    letterSpacing: '0.07em',
+                    textTransform: 'uppercase' as const,
+                    color: stage.active ? 'var(--stoa-gold)' : stage.done ? 'var(--stoa-resolve)' : 'var(--stoa-ink-3)',
+                  }}>
+                    {stage.label}
+                  </span>
+                  {i < 3 && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>→</span>}
+                </span>
+              ))}
+            </div>
+          )}
+
           {/* Operational metadata */}
           <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '3px 16px' }}>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>

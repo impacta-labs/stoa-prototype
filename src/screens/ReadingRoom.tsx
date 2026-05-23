@@ -215,6 +215,15 @@ export default function ReadingRoom() {
               {t.dissent.text}
             </p>
           </motion.div>
+
+          {/* Archive footer */}
+          <motion.div variants={depositItem} style={{ marginTop: 20, paddingTop: 14, borderTop: '1px solid var(--stoa-rule)' }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.06em', lineHeight: 1.7 }}>
+              This thread entered the Memory Layer on {t.settled}.<br />
+              Accessible to all future deliberations.<br />
+              Currently cited by {t.citedIn.length} active decision{t.citedIn.length !== 1 ? 's' : ''}.
+            </p>
+          </motion.div>
         </motion.div>
 
         {/* Sidebar */}
@@ -320,6 +329,18 @@ export default function ReadingRoom() {
                   </span>
                 ))}
               </div>
+            </motion.div>
+
+            <motion.div variants={depositItem} style={{ marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--stoa-rule)' }}>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 8px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
+                Now Informing
+              </p>
+              <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: '0 0 6px', lineHeight: 1.55 }}>
+                D-042 is drawing on this thread as precedent for the Lisbon satellite decision — specifically, the founding-question problem this thread identifies.
+              </p>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>
+                D-042 · Active deliberation
+              </span>
             </motion.div>
           </motion.div>
         )}

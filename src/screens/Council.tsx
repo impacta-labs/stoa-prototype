@@ -22,7 +22,7 @@ function ResolvedItem({ text }: { text: string }) {
           Resolved
         </span>
       </div>
-      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
+      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
         {text}
       </p>
     </div>
@@ -57,7 +57,7 @@ function ActionItem({ actor, due, text }: { actor?: string; due?: string; text: 
           </span>
         )}
       </div>
-      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
+      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
         {text}
       </p>
     </div>
@@ -102,7 +102,7 @@ function AttributedItem({ actor, date, text, index }: { actor?: string; date?: s
             {date && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{date}</span>}
           </div>
         )}
-        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65 }}>
+        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65 }}>
           {text}
         </p>
       </div>
@@ -123,7 +123,7 @@ function NoteItem({ text, index }: { text: string; index: number }) {
       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', width: 20, flexShrink: 0, paddingTop: 2 }}>
         {String(index + 1).padStart(2, '0')}
       </span>
-      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
+      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
         {text}
       </p>
     </div>
@@ -151,7 +151,7 @@ function SignalItem_({ ref_: ref_, text, index }: { ref_?: string; text: string;
             </span>
           </div>
         )}
-        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65 }}>
+        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65 }}>
           {text}
         </p>
       </div>
@@ -469,7 +469,7 @@ export default function Council() {
           </div>
 
           {/* Minutes content */}
-          <div style={{ flex: 1, padding: isMobile ? '0 20px' : '0 40px', overflowY: 'auto' as const }}>
+          <div style={{ flex: 1, padding: isMobile ? '0 20px' : '0 40px', overflowY: 'auto' as const, backgroundColor: isClosing ? 'rgba(196, 149, 42, 0.02)' : 'transparent' }}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={activeStation}
