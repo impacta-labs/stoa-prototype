@@ -121,5 +121,13 @@ body {
 
   body {
     font-size: 13px;
+    line-height: 1.5;
+  }
+}
+
+/* Narrow mobile — further density compression */
+@media (max-width: 390px) {
+  body {
+    font-size: 12px;
   }
 }

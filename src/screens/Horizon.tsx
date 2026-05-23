@@ -92,13 +92,18 @@ export default function Horizon() {
                     >
                       {bet.title}
                     </p>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' as const }}>
                       <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
                         {bet.owner}
                       </span>
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
                         {bet.id} · {bet.horizon}
                       </span>
+                      {(bet as { originates?: string }).originates && (
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                          Origin: {(bet as { originates: string }).originates}
+                        </span>
+                      )}
                     </div>
                   </div>
                   <span

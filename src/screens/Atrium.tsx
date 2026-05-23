@@ -10,6 +10,7 @@ import {
   recentlySettled,
   memoryBand,
   systemStatus,
+  councilHistory,
 } from '../data/fixtures'
 
 const statusColor: Record<string, string> = {
@@ -74,17 +75,14 @@ export default function Atrium() {
               >
                 {organization.name}
               </h1>
-              <p
-                style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 12,
-                  fontWeight: 300,
-                  color: 'var(--stoa-ink-3)',
-                  margin: 0,
-                }}
-              >
+              <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 300, color: 'var(--stoa-ink-3)', margin: '0 0 3px' }}>
                 {organization.chapter}
               </p>
+              {!isMobile && (
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: 0, fontWeight: 300 }}>
+                  {organization.focus}
+                </p>
+              )}
             </div>
             {!isMobile && (
               <div style={{ textAlign: 'right' as const }}>
@@ -156,9 +154,24 @@ export default function Atrium() {
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-gold)', margin: '0 0 2px' }}>
               {weeklyStanding.nextCouncil}
             </p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0 }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '0 0 12px' }}>
               {systemStatus.pendingActions} pending actions · {systemStatus.sessionRef} in session
             </p>
+            <div style={{ borderTop: '1px solid var(--stoa-rule)', paddingTop: 10 }}>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 5px', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>
+                Recent sessions
+              </p>
+              {councilHistory.slice(0, 3).map((h) => (
+                <div key={h.ref} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                    {h.ref}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                    {h.date}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         </motion.div>
 

@@ -7,6 +7,7 @@ export const organization = {
   founded: 2018,
   location: 'Barcelona, Poblenou',
   participants: 7,
+  focus: 'Strategic residency · independent cultural infrastructure · long-term practitioner commitment',
 }
 
 export const systemStatus = {
@@ -30,6 +31,30 @@ export const weeklyStanding = {
   lastConvened: '19 May 2026',
   nextCouncil: '30 May 2026',
 }
+
+export const councilHistory = [
+  {
+    ref: 'S-026',
+    date: '16 May 2026',
+    focus: 'D-042 first review · D-046 flagged',
+    attendees: 4,
+    summary: 'First formal review of the Lisbon question. E. Vidal raised D-046 lease urgency. P. Soler requested additional time to frame founding question.',
+  },
+  {
+    ref: 'S-025',
+    date: '09 May 2026',
+    focus: 'D-044 Miró preparation · residency cycle update',
+    attendees: 5,
+    summary: 'Foundation partnership preparation. Residency applications confirmed at 47. D-046 mentioned informally but not formally escalated.',
+  },
+  {
+    ref: 'S-024',
+    date: '02 May 2026',
+    focus: 'Q2 planning · D-042 pre-framing',
+    attendees: 4,
+    summary: 'Quarterly planning session. D-042 pre-framed before formal opening. Governance v3 operating smoothly per D-037.',
+  },
+]
 
 export const inDeliberation = [
   {
@@ -173,6 +198,18 @@ export const memoryBand = [
   { id: 'M-010', title: 'Compensation and commitment: the practitioner relationship', date: '03 Jun 2025' },
 ]
 
+// Structured content item types for Council stations
+export type StationItemType = 'note' | 'resolved' | 'action' | 'schedule' | 'signal' | 'attributed'
+
+export interface StationItem {
+  type: StationItemType
+  text: string
+  actor?: string   // for 'action', 'attributed'
+  date?: string    // for 'attributed'
+  ref?: string     // for 'signal'
+  due?: string     // for 'action'
+}
+
 export const lisbonDecision = {
   id: 'D-042',
   title: 'Should Alpha Espai open a Lisbon satellite presence in 2026?',
@@ -203,8 +240,8 @@ See M-014 (Dec 2025) for the organizational reasoning that preceded this decisio
       body: "The proposal is not a branch office. It is a second intelligence — a place where Alpha Espai's questions are asked from a different position. The satellite would operate with significant autonomy, connected to Barcelona through shared governance (per D-037's framework, Section 4.2) but distinct in its founding question.",
     },
     {
-      heading: 'The risks that must be named',
-      body: 'Organizational bifurcation. Capital shortfall: €90k available vs. €180k minimum required. Residency coordination complexity (J. Ruiz, 17 May). Coherence risk if founding question is not settled before commitment. These risks are not reasons to decline — they are conditions that must be addressed within the decision, not after it.',
+      heading: 'Risks that must be named',
+      body: 'Organizational bifurcation. Capital shortfall: €90k available vs. €180k minimum required. Residency coordination complexity. Coherence risk if founding question is not settled before commitment. These risks are not reasons to decline — they are conditions that must be addressed within the decision, not after it.',
     },
   ],
 
@@ -213,22 +250,32 @@ See M-014 (Dec 2025) for the organizational reasoning that preceded this decisio
       id: 'O-1',
       label: 'Proceed in 2026',
       description: 'Establish the satellite in H2 2026. Requires: identified funding partner, settled founding question, and named Lisbon leadership before commitment.',
+      consequence: 'Triggers satellite governance under D-037 § 4.2. €180k minimum capital commitment required. Founding question becomes structural.',
     },
     {
       id: 'O-2',
       label: 'Defer to 2027',
       description: 'Continue building Lisbon relationships without spatial commitment. Return to the question in Q4 2026 with more information and a stronger financial position.',
+      consequence: 'Lisbon rental window closes. Relationships with Esteves, Querido maintained informally. New decision opens Q4 2026 from weaker position.',
     },
     {
       id: 'O-3',
       label: 'Partnership model only',
       description: 'Formalize relationships with existing Lisbon institutions. No dedicated space; no satellite governance. Lower risk, lower ambition.',
+      consequence: 'D-042 closes as Modified. No spatial commitment. Barcelona remains single operational node. Lisbon ambition absorbed into partnership logic.',
     },
     {
       id: 'O-4',
       label: 'Reframe the question',
-      description: 'The binary Barcelona/Lisbon framing may be wrong. Consider whether this is a question about becoming a multi-node organization, with Lisbon as the test case.',
+      description: 'The Barcelona/Lisbon binary may be the wrong frame. Consider whether this is a question about becoming a multi-node organization, with Lisbon as the test case.',
+      consequence: 'D-042 closed. New decision D-048 opened: "What kind of organization should Alpha Espai become?" Multi-node model deliberated formally.',
     },
+  ],
+
+  resolutionConditions: [
+    { id: 'RC-1', label: 'Founding question submitted', owner: 'Pau Soler', due: '28 May 2026', satisfied: false },
+    { id: 'RC-2', label: 'Funding partner at letter-of-intent stage', owner: 'Marta Ferrer', due: '30 May 2026', satisfied: false },
+    { id: 'RC-3', label: 'D-046 Poblenou lease formally addressed', owner: 'Elena Vidal', due: '24 May 2026', satisfied: false },
   ],
 
   stakeholders: [
@@ -237,7 +284,7 @@ See M-014 (Dec 2025) for the organizational reasoning that preceded this decisio
       role: 'Director',
       position: 'In favour — cautiously',
       weight: 'Primary',
-      note: 'Timing is correct; risk is manageable if the founding team is right. Has reservations about pace. Driving the deliberation.',
+      note: 'Timing is correct; risk is manageable if the founding team is right. Driving the deliberation. Funding partner conversations ongoing.',
       responded: true,
       lastContribution: '19 May 2026',
     },
@@ -246,7 +293,7 @@ See M-014 (Dec 2025) for the organizational reasoning that preceded this decisio
       role: 'Programme Lead',
       position: 'Conditional',
       weight: 'Primary',
-      note: 'Supportive if satellite has genuine autonomy and a distinct founding question. Committed to drafting the founding question statement by 28 May.',
+      note: 'Supportive if satellite has genuine autonomy and a distinct founding question. Committed to drafting founding question statement by 28 May.',
       responded: true,
       lastContribution: '21 May 2026',
     },
@@ -264,7 +311,7 @@ See M-014 (Dec 2025) for the organizational reasoning that preceded this decisio
       role: 'Residency Coordinator',
       position: 'Neutral',
       weight: 'Contributing',
-      note: 'Focused on operational implications. Two-site residency requires founding question settled before residency function can be designed for the satellite.',
+      note: 'Two-site residency requires founding question settled before residency function can be designed for the satellite. Sequencing issue flagged.',
       responded: true,
       lastContribution: '17 May 2026',
     },
@@ -273,7 +320,7 @@ See M-014 (Dec 2025) for the organizational reasoning that preceded this decisio
       role: 'Board — Lisbon',
       position: 'Strongly in favour',
       weight: 'Advisory',
-      note: 'Deep knowledge of Lisbon cultural infrastructure. Submitted async 19 May. Confirms appetite from Esteves and Querido. "This decision should not wait."',
+      note: 'Deep knowledge of Lisbon cultural infrastructure. Submitted async 19 May 21:14. Confirms appetite from Esteves and Querido. "This decision should not wait."',
       responded: true,
       lastContribution: '19 May 2026',
     },
@@ -390,6 +437,7 @@ export const councilSession = {
   startTime: '09:30',
   nextCouncil: '30 May 2026',
   convener: 'Marta Ferrer',
+  previousSession: { ref: 'S-026', date: '16 May 2026', focus: 'D-042 first review · D-046 flagged' },
   participants: [
     { name: 'Marta Ferrer', role: 'Director', present: true },
     { name: 'Pau Soler', role: 'Programme Lead', present: true },
@@ -403,58 +451,58 @@ export const councilSession = {
       label: 'Ripening',
       description: 'Decisions and signals approaching threshold. What cannot wait.',
       content: [
-        'D-042 LISBON — Rental window closes Jul 2026. Decision required before 23 Jun to preserve three remaining target properties. Signal S-001 (01 May): 8 of 14 suitable properties now leased to competitors. Each week of delay narrows the field.',
-        "D-046 POBLENOU LEASE — 48 days overdue. Landlord's informal extension expires 31 May. No formal extension in writing. E. Vidal flagged this to council on 11 May; no formal action taken. Lease lapses if not addressed by end of month. Escalated.",
-        'D-044 FUNDACIÓ MIRÓ — Board convenes 10 Jun. A. Costa (15 May): new director sympathetic to independent organizations. Position must be communicated no later than 06 Jun to allow preparation time. Three working days remain after this council.',
-        'D-043 RESIDENCY 18-MONTH — If decision made before 31 May, Q4 2026 pilot launch is viable alongside current cohort. J. Ruiz has provisional framework ready. Window closes at end of month.',
-      ],
+        { type: 'signal', ref: 'D-042 · Lisbon', text: 'Rental window closes Jul 2026. Decision required before 23 Jun to preserve three remaining target properties. Signal S-001 (01 May): 8 of 14 suitable properties leased to competitors. Each week of delay narrows the field.' },
+        { type: 'signal', ref: 'D-046 · Poblenou', text: '48 days overdue. Landlord\'s informal extension expires 31 May. No formal extension in writing. E. Vidal flagged to council 11 May; no formal action taken. Lease lapses if not addressed by end of month. Escalated.' },
+        { type: 'signal', ref: 'D-044 · Fundació Miró', text: 'Board convenes 10 Jun. New director sympathetic to independent organizations (A. Costa, 15 May). Position must be communicated no later than 06 Jun. Three working days remain after this council.' },
+        { type: 'signal', ref: 'D-043 · Residency 18M', text: 'If decision made before 31 May, Q4 2026 pilot launch is viable alongside current cohort. J. Ruiz provisional framework ready. Window closes at end of month.' },
+      ] as StationItem[],
     },
     {
       id: 'deliberation',
       label: 'Deliberation',
       description: 'Active reasoning on D-042. What has been said; what has not yet been said.',
       content: [
-        'Eight exchanges recorded across 11 days (12–21 May). All five stakeholders have submitted positions — including A. Costa async from Lisbon on 19 May at 21:14.',
-        'Financial position: E. Vidal (14 May) identified €90k available vs. €180k minimum (3-year commitment). Follow-up (20 May): two potential funding partners contacted; one responsive to 3-year programme support arrangement. Gap remains open but picture improving.',
-        "Founding-question problem: P. Soler (16 May): the satellite must have its own founding question — something it is trying to understand that Barcelona cannot ask from its position. M. Ferrer accepted this as a precondition. P. Soler committed to draft statement by 28 May. Not yet submitted as of today.",
-        'Lisbon appetite confirmed: A. Costa (19 May) spoke directly with Mariana Esteves and Nuno Querido this week. Both willing to engage seriously. Nuno Querido\'s current question — the relationship between infrastructure and practice — identified by P. Soler as a candidate founding question.',
-        'Dissent formally registered: E. Vidal (21 May). Funding precondition should precede decision, not follow it. Recorded in thread.',
-      ],
+        { type: 'note', text: 'Eight exchanges recorded across 11 days (12–21 May). All five stakeholders submitted positions — including A. Costa async from Lisbon, 19 May 21:14.' },
+        { type: 'attributed', actor: 'E. Vidal', date: '14 May', text: 'Identified €90k available vs. €180k minimum (3-year commitment). Follow-up 20 May: two potential funding partners contacted; one responsive to 3-year programme support arrangement. Gap remains open but picture improving.' },
+        { type: 'attributed', actor: 'P. Soler', date: '16 May', text: 'The satellite must have its own founding question — something it is trying to understand that Barcelona cannot ask from its position. M. Ferrer accepted as precondition. P. Soler committed to draft statement by 28 May. Not yet submitted as of today.' },
+        { type: 'attributed', actor: 'A. Costa', date: '19 May', text: 'Spoke directly with Mariana Esteves and Nuno Querido this week. Both willing to engage seriously. Nuno Querido\'s question — the relationship between infrastructure and practice — identified by P. Soler as candidate founding question.' },
+        { type: 'note', text: 'Dissent formally registered: E. Vidal, 21 May. Funding precondition should precede decision, not follow it. Recorded in thread.' },
+      ] as StationItem[],
     },
     {
       id: 'framing',
       label: 'Framing',
       description: 'The question as currently held. Is it the right question?',
       content: [
-        'Current frame: Should Alpha Espai open a Lisbon satellite presence in 2026?',
-        "Frame challenge — P. Soler (16 May): Is this a question about organizational model — whether Alpha Espai should become a multi-node organization — with Lisbon as the test case rather than the subject?",
-        "M. Ferrer response (19 May): The Lisbon question is the right frame for now. The model question is real but requires additional deliberation time we do not have. The deadline disciplines the framing.",
-        'Unresolved tension: whether proceeding without the founding question fully settled constitutes a responsible decision or a premature commitment. This tension is not a reason to defer — it is the work that remains before 30 May.',
-      ],
+        { type: 'note', text: 'Current frame: Should Alpha Espai open a Lisbon satellite presence in 2026?' },
+        { type: 'attributed', actor: 'P. Soler', date: '16 May', text: 'Frame challenge: Is this a question about organizational model — whether Alpha Espai should become a multi-node organization — with Lisbon as the test case rather than the subject?' },
+        { type: 'attributed', actor: 'M. Ferrer', date: '19 May', text: 'The Lisbon question is the right frame for now. The model question is real but requires additional deliberation time we do not have. The deadline disciplines the framing.' },
+        { type: 'note', text: 'Unresolved tension: whether proceeding without the founding question fully settled constitutes a responsible decision or a premature commitment. This tension is not a reason to defer — it is the work that remains before 30 May.' },
+      ] as StationItem[],
     },
     {
       id: 'rereading',
       label: 'Re-reading',
       description: 'What the archive says. Precedent and prior reasoning.',
       content: [
-        "M-017 (Mar 2026) — Why we stopped open-call cohorts: 'Alpha Espai thinks well in specific terms.' The cohort model failed because it required the opposite. Risk: Lisbon satellite fails for the same reason if it becomes a generalizing rather than a deepening move.",
-        "M-014 (Dec 2025) — What Lisbon represents: 'Lisbon is not about access to a new market. It is about access to a different question.' Written five months before D-042 was formally opened. The founding-question problem was anticipated.",
-        'D-037 (Jan 2026) — Governance v3: The revised framework was designed explicitly to accommodate multi-node operation. Section 4.2 addresses satellite governance. This decision was made with Lisbon in mind.',
-        "D-039 (Mar 2026) — Cohort programme: Precedent for this council's willingness to accept organizational discomfort in service of coherence. The satellite question requires the same quality of decision.",
-      ],
+        { type: 'signal', ref: 'M-017 · Mar 2026', text: '"Alpha Espai thinks well in specific terms." The cohort model failed because it required the opposite. Risk: Lisbon satellite fails for the same reason if it becomes a generalizing rather than a deepening move.' },
+        { type: 'signal', ref: 'M-014 · Dec 2025', text: '"Lisbon is not about access to a new market. It is about access to a different question." Written five months before D-042 was formally opened. The founding-question problem was anticipated.' },
+        { type: 'signal', ref: 'D-037 · Jan 2026', text: 'Governance v3 was designed explicitly to accommodate multi-node operation. Section 4.2 addresses satellite governance. This decision was made with Lisbon in mind.' },
+        { type: 'signal', ref: 'D-039 · Mar 2026', text: 'Precedent for this council\'s willingness to accept organizational discomfort in service of coherence. The satellite question requires the same quality of decision.' },
+      ] as StationItem[],
     },
     {
       id: 'closing',
       label: 'Closing Summary',
       description: 'What was held; what remains open; what is to be done.',
       content: [
-        'RESOLVED — Deadline confirmed: D-042 verdict required before 30 Jun 2026. This date is binding. Rental window and organizational momentum require it.',
-        "RESOLVED — E. Vidal's funding precondition incorporated as a condition of the 'Proceed' option. Proceeding without an identified funding partner is not a valid path.",
-        'ACTION: P. Soler — Draft one-page founding question for the Lisbon satellite. Due 28 May 2026. This document is a precondition for the verdict.',
-        'ACTION: M. Ferrer — Continue funding partner conversations this week. Report status at next council. Target: one partner at letter-of-intent stage by 30 May.',
-        'ACTION: E. Vidal — Send formal response to Poblenou landlord by 24 May. D-046 requires urgent attention independent of D-042.',
-        'NEXT COUNCIL: 30 May 2026. Verdict on D-042 expected. P. Soler founding question document due.',
-      ],
+        { type: 'resolved', text: 'Deadline confirmed: D-042 verdict required before 30 Jun 2026. This date is binding. Rental window and organizational momentum require it.' },
+        { type: 'resolved', text: 'E. Vidal\'s funding precondition incorporated as a condition of the \'Proceed\' option. Proceeding without an identified funding partner is not a valid path.' },
+        { type: 'action', actor: 'P. Soler', due: '28 May 2026', text: 'Draft one-page founding question for the Lisbon satellite. This document is a precondition for the verdict.' },
+        { type: 'action', actor: 'M. Ferrer', due: '30 May 2026', text: 'Continue funding partner conversations this week. Report status at next council. Target: one partner at letter-of-intent stage.' },
+        { type: 'action', actor: 'E. Vidal', due: '24 May 2026', text: 'Send formal response to Poblenou landlord. D-046 requires urgent attention independent of D-042.' },
+        { type: 'schedule', text: '30 May 2026 · Verdict on D-042 expected. P. Soler founding question document required before session.' },
+      ] as StationItem[],
     },
   ],
 }
@@ -470,11 +518,13 @@ export const weatherData = {
       label: 'High pressure — Expansion orientation',
       description: '67% of deliberation weight is oriented toward growth (D-042, D-043, D-044). Creates a coherent directional field but risks overcommitment relative to operational capacity. D-046 overdue suggests attention deficit already present.',
       intensity: 'High',
+      tracedTo: ['D-042', 'D-043', 'D-044'],
     },
     {
       label: 'Low pressure — Operational confidence',
       description: 'Residency programme is settled. Governance v3 running smoothly. Internal relationships healthy: disagreements in D-042 have been recorded formally rather than suppressed. This is the stable ground from which the expansion questions are being held.',
       intensity: 'Low',
+      tracedTo: ['D-037', 'D-031', 'S-027'],
     },
   ],
   prevailingWinds: {
@@ -484,18 +534,21 @@ export const weatherData = {
   stormFronts: [
     {
       label: 'Financial bifurcation risk',
-      description: 'If D-042 proceeds without a funding solution, the satellite creates structural drain on Barcelona within 24 months. E. Vidal has quantified this: €90k shortfall over 3 years. Partner conversations are active but not resolved. This is the most significant storm front in the current reading.',
+      description: 'If D-042 proceeds without a funding solution, the satellite creates structural drain on Barcelona within 24 months. E. Vidal has quantified this: €90k shortfall over 3 years. Partner conversations are active but not resolved.',
       severity: 'significant',
+      tracedTo: ['D-042', 'S-005'],
     },
     {
       label: 'Attention fragmentation — D-046',
-      description: 'The Poblenou lease (D-046) has been overdue for 48 days with no formal action. This signals attention fragmentation — the council is focused on the larger strategic questions while an operational risk accumulates. If the lease lapses, it becomes a crisis.',
+      description: 'The Poblenou lease (D-046) has been overdue for 48 days with no formal action. This signals attention fragmentation — the council is focused on larger strategic questions while an operational risk accumulates. If the lease lapses, it becomes a crisis.',
       severity: 'significant',
+      tracedTo: ['D-046'],
     },
     {
       label: 'Coherence risk — autonomy tension',
-      description: "P. Soler's unresolved founding-question problem could bifurcate the organization intellectually before it does so spatially. Two sites with different answers to 'what is Alpha Espai' is more dangerous than one site with uncertainty. This risk is manageable — it has a specific action attached.",
+      description: "P. Soler's unresolved founding-question problem could bifurcate the organization intellectually before it does so spatially. Two sites with different answers to 'what is Alpha Espai' is more dangerous than one site with uncertainty. This risk has a specific action attached.",
       severity: 'moderate',
+      tracedTo: ['D-042', 'M-014'],
     },
   ],
   calm: [
@@ -522,6 +575,7 @@ export const horizonData = {
       owner: 'Pau Soler',
       conviction: 'High',
       horizon: '2028',
+      originates: 'D-042',
       rationale: 'If the satellite is established with genuine autonomy and the right founding question, Lisbon will become the more generative of the two nodes within 3 years. Barcelona becomes the institutional anchor; Lisbon the experimental edge. Ana Costa\'s network and Nuno Querido\'s question point toward this.',
     },
     {
@@ -530,7 +584,8 @@ export const horizonData = {
       owner: 'Marta Ferrer',
       conviction: 'Medium',
       horizon: '2027',
-      rationale: 'The logic that killed our cohort programme (D-039, M-017) will affect peers operating at similar scale. Expect 60%+ of comparable organizations to have abandoned the format by 2027, whether or not they articulate the reasoning clearly. Alpha Espai is ahead of this curve.',
+      originates: 'D-039',
+      rationale: 'The logic that killed our cohort programme (D-039, M-017) will affect peers operating at similar scale. Expect 60%+ of comparable organizations to have abandoned the format by 2027. Alpha Espai is ahead of this curve.',
     },
     {
       id: 'B-003',
@@ -538,6 +593,7 @@ export const horizonData = {
       owner: 'Elena Vidal',
       conviction: 'Medium',
       horizon: 'Q4 2027',
+      originates: 'D-044',
       rationale: 'The Fundació Miró question (D-044) will resolve positively or will be superseded by a different opportunity. The organization\'s model is now legible to public institutions in a way it was not during the cohort period. New Miró director is a signal.',
     },
   ],
@@ -596,7 +652,7 @@ export const horizonData = {
       label: 'Peer organization Lisbon activity',
       source: 'Network observation — informal',
       lastRead: '10 May 2026',
-      reading: '2 Barcelona-based peers actively seeking Lisbon space. One (unnamed) has identified a property. Competitive pressure building.',
+      reading: '2 Barcelona-based peers actively seeking Lisbon space. One has identified a property. Competitive pressure building.',
       owner: 'Pau Soler',
     },
     {

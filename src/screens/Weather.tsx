@@ -186,7 +186,7 @@ export default function Weather() {
                         borderBottom: i < w.pressureSystems.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
                       }}
                     >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                         <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, color: 'var(--stoa-ink)' }}>
                           {ps.label}
                         </span>
@@ -202,9 +202,17 @@ export default function Weather() {
                           {ps.intensity}
                         </span>
                       </div>
-                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.65 }}>
+                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: '0 0 6px', lineHeight: 1.65 }}>
                         {ps.description}
                       </p>
+                      {'tracedTo' in ps && (ps as { tracedTo?: string[] }).tracedTo && (
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>Traced:</span>
+                          {(ps as { tracedTo: string[] }).tracedTo.map(ref => (
+                            <span key={ref} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>{ref}</span>
+                          ))}
+                        </div>
+                      )}
                     </motion.div>
                   ))}
                 </div>
@@ -276,7 +284,7 @@ export default function Weather() {
                       backgroundColor: sf.severity === 'significant' ? 'rgba(181, 98, 26, 0.03)' : undefined,
                     }}
                   >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 7 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
                       <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, color: 'var(--stoa-ink)' }}>
                         {sf.label}
                       </span>
@@ -292,9 +300,17 @@ export default function Weather() {
                         {sf.severity}
                       </span>
                     </div>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.65 }}>
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: '0 0 6px', lineHeight: 1.65 }}>
                       {sf.description}
                     </p>
+                    {'tracedTo' in sf && (sf as { tracedTo?: string[] }).tracedTo && (
+                      <div style={{ display: 'flex', gap: 6 }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>Traced:</span>
+                        {(sf as { tracedTo: string[] }).tracedTo.map(ref => (
+                          <span key={ref} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>{ref}</span>
+                        ))}
+                      </div>
+                    )}
                   </motion.div>
                 ))}
               </div>

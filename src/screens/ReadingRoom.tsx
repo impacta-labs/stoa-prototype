@@ -126,6 +126,32 @@ export default function ReadingRoom() {
             </div>
           </motion.div>
 
+          {/* Active citation notice */}
+          {t.citedIn && t.citedIn.length > 0 && (
+            <motion.div variants={depositItem} style={{ marginBottom: 24 }}>
+              <div
+                style={{
+                  padding: '9px 14px',
+                  borderLeft: '2px solid var(--stoa-gold)',
+                  backgroundColor: 'var(--stoa-gold-subtle)',
+                  display: 'flex',
+                  alignItems: 'baseline',
+                  gap: 10,
+                  flexWrap: 'wrap' as const,
+                }}
+              >
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.09em', textTransform: 'uppercase' as const, flexShrink: 0 }}>
+                  Cited in active deliberation
+                </span>
+                {t.citedIn.map(ref => (
+                  <span key={ref} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>
+                    {ref}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
+          )}
+
           {/* Body */}
           <div style={{ maxWidth: 580 }}>
             {t.body.map((paragraph, i) => (

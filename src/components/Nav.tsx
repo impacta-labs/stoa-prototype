@@ -1,5 +1,5 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { organization, councilSession } from '../data/fixtures'
+import { organization, councilSession, systemStatus } from '../data/fixtures'
 import { useIsMobile } from '../hooks/useViewport'
 
 const SCREENS = [
@@ -127,25 +127,15 @@ export default function Nav() {
               backgroundColor: 'var(--stoa-rule-strong)',
             }}
           />
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-            <div
-              style={{
-                width: 4,
-                height: 4,
-                borderRadius: '50%',
-                backgroundColor: 'var(--stoa-gold)',
-                flexShrink: 0,
-              }}
-            />
-            <span
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 11,
-                color: 'var(--stoa-ink-2)',
-                letterSpacing: '0.02em',
-              }}
-            >
-              {organization.name}
+          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 1 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)', flexShrink: 0 }} />
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', letterSpacing: '0.02em' }}>
+                {organization.name}
+              </span>
+            </div>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', paddingLeft: 10, letterSpacing: '0.04em' }}>
+              {systemStatus.overdueDecisions > 0 ? `${systemStatus.overdueDecisions} overdue` : organization.period}
             </span>
           </div>
         </div>
