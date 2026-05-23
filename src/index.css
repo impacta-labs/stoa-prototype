@@ -1,0 +1,72 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-sans: "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --font-mono: "IBM Plex Mono", "Courier New", monospace;
+}
+
+:root {
+  --stoa-bg: #0C0C0E;
+  --stoa-surface-1: #111115;
+  --stoa-surface-2: #18181E;
+  --stoa-surface-3: #1E1E26;
+  --stoa-rule: #2A2A30;
+  --stoa-ink: #F2EDE6;
+  --stoa-ink-2: #9A9490;
+  --stoa-ink-3: #4A4744;
+  --stoa-gold: #C4952A;
+  --stoa-gold-muted: #8A6A1E;
+  --stoa-amber: #B5621A;
+  --stoa-resolve: #4A7A5A;
+  --stoa-critical: #8A2A2A;
+  --stoa-border: rgba(255, 255, 255, 0.10);
+  --stoa-border-strong: rgba(255, 255, 255, 0.18);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background-color: var(--stoa-bg);
+  color: var(--stoa-ink);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.10);
+  border-radius: 2px;
+}
+
+::selection {
+  background: rgba(196, 149, 42, 0.25);
+  color: var(--stoa-ink);
+}
