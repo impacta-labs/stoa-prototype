@@ -262,7 +262,10 @@ export const memoryThread = {
 
 export const councilSession = {
   title: 'Q2 Strategic Review — Lisbon Expansion',
+  sessionRef: 'S-027',
   date: '23 May 2026',
+  startTime: '09:30',
+  nextCouncil: '30 May 2026',
   convener: 'Marta Ferrer',
   participants: [
     { name: 'Marta Ferrer', role: 'Director', present: true },

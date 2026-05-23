@@ -1,9 +1,11 @@
 import { motion } from 'framer-motion'
 import { chamberEnter, settle, depositItem, deposit } from '../lib/motion'
 import SectionHeader from '../components/primitives/SectionHeader'
+import { useIsMobile } from '../hooks/useViewport'
 import { memoryThread } from '../data/fixtures'
 
 export default function ReadingRoom() {
+  const isMobile = useIsMobile()
   const t = memoryThread
 
   return (
@@ -16,114 +18,129 @@ export default function ReadingRoom() {
       {/* Room Header */}
       <div
         style={{
-          padding: '24px 40px 20px',
+          padding: isMobile ? '16px 20px' : '20px 40px',
           borderBottom: '1px solid var(--stoa-rule)',
+          backgroundColor: 'var(--stoa-surface-1)',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'baseline',
         }}
       >
-        <motion.div variants={settle} style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
+        <motion.div variants={settle} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
             Reading Room
           </span>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>·</span>
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
             Alpha Espai Archive
           </span>
         </motion.div>
-        <motion.span
-          variants={settle}
-          style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)' }}
-        >
-          {t.id}
-        </motion.span>
+        <motion.div variants={settle} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-resolve)', letterSpacing: '0.06em' }}>
+            {t.id}
+          </span>
+          {!isMobile && (
+            <>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                Settled {t.settled}
+              </span>
+            </>
+          )}
+        </motion.div>
       </div>
 
       {/* Document */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 240px', flex: 1 }}>
+      <div
+        className="stoa-col-right-240"
+        style={{ flex: 1 }}
+      >
         {/* Main text */}
         <motion.div
           variants={deposit}
           initial="hidden"
           animate="visible"
           style={{
-            padding: '52px 56px 64px 40px',
-            borderRight: '1px solid var(--stoa-rule)',
+            padding: isMobile ? '28px 20px 40px' : '44px 48px 56px 40px',
+            borderRight: isMobile ? 'none' : '1px solid var(--stoa-rule)',
           }}
         >
-          {/* Title */}
-          <motion.div variants={depositItem} style={{ marginBottom: 36 }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: 16, marginBottom: 6 }}>
+          {/* Title block */}
+          <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
+            <div style={{ display: 'flex', alignItems: 'baseline', gap: 12, marginBottom: 8 }}>
               <span
                 style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 11,
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 9,
                   color: 'var(--stoa-resolve)',
-                  letterSpacing: '0.08em',
+                  letterSpacing: '0.1em',
                   textTransform: 'uppercase' as const,
                 }}
               >
                 Memory Thread
               </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-                Settled {t.settled}
-              </span>
+              {!isMobile && (
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                  Settled {t.settled}
+                </span>
+              )}
             </div>
             <h1
               style={{
                 fontFamily: 'var(--font-serif)',
-                fontSize: 32,
+                fontSize: isMobile ? 22 : 28,
                 fontWeight: 400,
                 color: 'var(--stoa-ink)',
                 margin: 0,
                 lineHeight: 1.2,
                 letterSpacing: '-0.01em',
-                maxWidth: 580,
+                maxWidth: 520,
               }}
             >
               {t.title}
             </h1>
           </motion.div>
 
-          {/* Byline rule */}
+          {/* Byline */}
           <motion.div variants={depositItem}>
             <div
               style={{
                 display: 'flex',
-                gap: 20,
-                padding: '14px 0',
-                borderTop: '1px solid var(--stoa-border-strong)',
+                gap: 16,
+                padding: '12px 0',
+                borderTop: '1px solid var(--stoa-rule-strong)',
                 borderBottom: '1px solid var(--stoa-rule)',
-                marginBottom: 40,
+                marginBottom: 36,
+                flexWrap: 'wrap' as const,
               }}
             >
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)' }}>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)' }}>
                 {t.author}
               </span>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-3)' }}>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)' }}>
                 {t.role}
               </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)', marginLeft: 'auto' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', marginLeft: 'auto' }}>
                 {t.settled}
               </span>
             </div>
           </motion.div>
 
           {/* Body */}
-          <div style={{ maxWidth: 640 }}>
+          <div style={{ maxWidth: 580 }}>
             {t.body.map((paragraph, i) => (
               <motion.p
                 key={i}
                 variants={depositItem}
                 style={{
                   fontFamily: 'var(--font-serif)',
-                  fontSize: 16,
+                  fontSize: isMobile ? 14 : 15,
                   fontWeight: 400,
-                  color: i === 1 ? 'var(--stoa-ink)' : 'var(--stoa-ink)',
-                  lineHeight: 1.75,
-                  margin: '0 0 24px',
+                  color: 'var(--stoa-ink)',
+                  lineHeight: 1.8,
+                  margin: '0 0 22px',
                   fontStyle: i === 1 ? 'italic' : 'normal',
+                  opacity: i === 1 ? 0.9 : 1,
                 }}
               >
                 {paragraph}
@@ -131,31 +148,32 @@ export default function ReadingRoom() {
             ))}
           </div>
 
-          {/* Dissent */}
+          {/* Dissent block */}
           <motion.div
             variants={depositItem}
             style={{
-              marginTop: 16,
-              padding: '20px 20px 20px 20px',
+              marginTop: 8,
+              padding: '18px 18px 18px 16px',
               borderLeft: '2px solid var(--stoa-amber)',
-              borderTop: '1px solid var(--stoa-rule)',
-              paddingTop: 20,
               backgroundColor: 'rgba(181, 98, 26, 0.03)',
             }}
           >
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 12 }}>
-              <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-amber)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap' as const, gap: 4 }}>
+              <div style={{ display: 'flex', gap: 6, alignItems: 'baseline' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
                   Dissent Recorded
                 </span>
               </div>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                {t.dissent.timestamp}
+              </span>
             </div>
             <div style={{ marginBottom: 10 }}>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, color: 'var(--stoa-ink)' }}>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 500, color: 'var(--stoa-ink)' }}>
                 {t.dissent.participant}
               </span>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', marginLeft: 8 }}>
-                {t.dissent.role} · {t.dissent.timestamp}
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', marginLeft: 8 }}>
+                {t.dissent.role}
               </span>
             </div>
             <p
@@ -164,7 +182,7 @@ export default function ReadingRoom() {
                 fontSize: 14,
                 color: 'var(--stoa-ink)',
                 margin: 0,
-                lineHeight: 1.65,
+                lineHeight: 1.7,
                 fontStyle: 'italic',
               }}
             >
@@ -174,78 +192,85 @@ export default function ReadingRoom() {
         </motion.div>
 
         {/* Sidebar */}
-        <motion.div
-          variants={deposit}
-          initial="hidden"
-          animate="visible"
-          style={{ padding: '52px 40px 40px 28px' }}
-        >
-          <motion.div variants={depositItem} style={{ marginBottom: 32 }}>
-            <SectionHeader label="Thread metadata" />
-            <div style={{ marginTop: 16, display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {[
-                { label: 'Reference', value: t.id },
-                { label: 'Settled', value: t.settled },
-                { label: 'Author', value: t.author },
-                { label: 'Decision', value: t.relatedDecision },
-              ].map(({ label, value }, i, arr) => (
-                <div
-                  key={label}
-                  style={{
-                    padding: '10px 0',
-                    borderBottom: i < arr.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
-                    display: 'flex',
-                    flexDirection: 'column' as const,
-                    gap: 2,
-                  }}
-                >
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
-                    {label}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--stoa-ink-2)' }}>
-                    {value}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
+        {!isMobile && (
+          <motion.div
+            variants={deposit}
+            initial="hidden"
+            animate="visible"
+            style={{
+              padding: '44px 36px 40px 28px',
+              backgroundColor: 'var(--stoa-surface-1)',
+            }}
+          >
+            <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
+              <SectionHeader label="Thread Metadata" />
+              <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column' }}>
+                {[
+                  { label: 'Reference',  value: t.id },
+                  { label: 'Settled',    value: t.settled },
+                  { label: 'Author',     value: t.author },
+                  { label: 'Decision',   value: t.relatedDecision },
+                  { label: 'Accessed',   value: '23 May 2026' },
+                ].map(({ label, value }, i, arr) => (
+                  <div
+                    key={label}
+                    style={{
+                      padding: '9px 0',
+                      borderBottom: i < arr.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
+                      display: 'flex',
+                      flexDirection: 'column' as const,
+                      gap: 2,
+                    }}
+                  >
+                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
+                      {label}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>
+                      {value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
 
-          <motion.div variants={depositItem} style={{ marginBottom: 32 }}>
-            <SectionHeader label="Tags" />
-            <div style={{ marginTop: 12, display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
-              {t.tags.map((tag) => (
-                <span
-                  key={tag}
-                  style={{
-                    fontFamily: 'var(--font-mono)',
-                    fontSize: 11,
-                    color: 'var(--stoa-ink-3)',
-                    padding: '3px 8px',
-                    border: '1px solid var(--stoa-rule)',
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          </motion.div>
+            <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
+              <SectionHeader label="Tags" />
+              <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap' as const, gap: 5 }}>
+                {t.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 10,
+                      color: 'var(--stoa-ink-3)',
+                      padding: '3px 7px',
+                      border: '1px solid var(--stoa-rule)',
+                      letterSpacing: '0.03em',
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </motion.div>
 
-          <motion.div variants={depositItem}>
-            <SectionHeader label="Context" />
-            <p
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 13,
-                color: 'var(--stoa-ink-3)',
-                margin: '14px 0 0',
-                lineHeight: 1.6,
-              }}
-            >
-              This thread is the settled record of Decision {t.relatedDecision}. It was written to preserve the reasoning, not the outcome. Future deliberations may read this thread for precedent.
-            </p>
+            <motion.div variants={depositItem}>
+              <SectionHeader label="Precedent" />
+              <p
+                style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 12,
+                  color: 'var(--stoa-ink-3)',
+                  margin: '12px 0 0',
+                  lineHeight: 1.65,
+                }}
+              >
+                This thread is the settled record of Decision {t.relatedDecision}. Future deliberations may
+                cite this thread for precedent. Currently cited in: D-042.
+              </p>
+            </motion.div>
           </motion.div>
-        </motion.div>
+        )}
       </div>
     </motion.div>
   )
