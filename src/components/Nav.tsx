@@ -1,6 +1,7 @@
 import { NavLink, useLocation } from 'react-router-dom'
 import { organization, councilSession, systemStatus } from '../data/fixtures'
 import { useIsMobile } from '../hooks/useViewport'
+import { useDecisionsStore } from '../store/decisions'
 
 const SCREENS = [
   { path: '/',             label: 'Atrio',     short: 'ATR' },
@@ -14,6 +15,7 @@ const SCREENS = [
 export default function Nav() {
   const location = useLocation()
   const isMobile = useIsMobile()
+  const { pilotMode, togglePilotMode, openCreateModal } = useDecisionsStore()
 
   return (
     <nav
@@ -98,48 +100,80 @@ export default function Nav() {
         })}
       </div>
 
-      {/* System state */}
-      {!isMobile && (
-        <div
+      {/* Right zone */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: isMobile ? 8 : 12,
+          paddingLeft: isMobile ? 8 : 16,
+          borderLeft: '1px solid var(--stoa-rule)',
+          flexShrink: 0,
+        }}
+      >
+        {/* Nueva iniciativa */}
+        <button
+          onClick={openCreateModal}
           style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 12,
-            paddingLeft: 24,
-            borderLeft: '1px solid var(--stoa-rule)',
+            fontFamily: 'var(--font-sans)',
+            fontSize: 11,
+            fontWeight: 500,
+            color: 'var(--stoa-bg)',
+            backgroundColor: 'var(--stoa-gold)',
+            border: 'none',
+            padding: isMobile ? '4px 10px' : '5px 14px',
+            cursor: 'pointer',
+            letterSpacing: '0.02em',
+            whiteSpace: 'nowrap' as const,
             flexShrink: 0,
           }}
         >
-          <span
+          {isMobile ? '+' : '+ Nueva'}
+        </button>
+
+        {/* Pilot mode toggle */}
+        {!isMobile && (
+          <button
+            onClick={togglePilotMode}
             style={{
               fontFamily: 'var(--font-mono)',
-              fontSize: 10,
-              color: 'var(--stoa-ink-3)',
+              fontSize: 9,
+              color: pilotMode ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)',
+              background: 'none',
+              border: `1px solid ${pilotMode ? 'var(--stoa-gold)' : 'var(--stoa-rule)'}`,
+              padding: '3px 8px',
+              cursor: 'pointer',
               letterSpacing: '0.06em',
+              textTransform: 'uppercase' as const,
+              flexShrink: 0,
             }}
           >
-            {councilSession.sessionRef}
-          </span>
-          <div
-            style={{
-              width: 1,
-              height: 12,
-              backgroundColor: 'var(--stoa-rule-strong)',
-            }}
-          />
-          <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 1 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)', flexShrink: 0 }} />
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', letterSpacing: '0.02em' }}>
-                {organization.name}
+            {pilotMode ? 'Piloto ●' : 'Piloto'}
+          </button>
+        )}
+
+        {/* System state */}
+        {!isMobile && (
+          <>
+            <div style={{ width: 1, height: 12, backgroundColor: 'var(--stoa-rule-strong)' }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em' }}>
+              {councilSession.sessionRef}
+            </span>
+            <div style={{ width: 1, height: 12, backgroundColor: 'var(--stoa-rule-strong)' }} />
+            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 1 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)', flexShrink: 0 }} />
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', letterSpacing: '0.02em' }}>
+                  {organization.name}
+                </span>
+              </div>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', paddingLeft: 10, letterSpacing: '0.04em' }}>
+                {systemStatus.overdueDecisions > 0 ? `${systemStatus.overdueDecisions} vencida` : organization.period}
               </span>
             </div>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', paddingLeft: 10, letterSpacing: '0.04em' }}>
-              {systemStatus.overdueDecisions > 0 ? `${systemStatus.overdueDecisions} vencida` : organization.period}
-            </span>
-          </div>
-        </div>
-      )}
+          </>
+        )}
+      </div>
     </nav>
   )
 }

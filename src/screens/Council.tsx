@@ -3,6 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { chamberEnter, settle } from '../lib/motion'
 import { useIsMobile } from '../hooks/useViewport'
 import { councilSession, councilHistory, type StationItem } from '../data/fixtures'
+import { useDecisionsStore } from '../store/decisions'
+import { generarResumenConsejo } from '../lib/ai'
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI']
 
@@ -172,8 +174,20 @@ function renderStationItem(item: StationItem, index: number, isClosing: boolean)
 
 export default function Council() {
   const [activeStation, setActiveStation] = useState(councilSession.stations[0].id)
+  const [showSummary, setShowSummary] = useState(false)
+  const [copied, setCopied] = useState(false)
   const isMobile = useIsMobile()
   const session = councilSession
+  const { decisions } = useDecisionsStore()
+
+  const summaryText = generarResumenConsejo(decisions, session.sessionRef, session.date)
+
+  function handleCopy() {
+    navigator.clipboard.writeText(summaryText).then(() => {
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    })
+  }
   const activeIndex = session.stations.findIndex((s) => s.id === activeStation)
   const currentStation = session.stations[activeIndex]
   const isClosing = currentStation.id === 'closing'
@@ -501,8 +515,25 @@ export default function Council() {
         </div>
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+          <button
+            onClick={() => setShowSummary(true)}
+            style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 9,
+              color: 'var(--stoa-ink-3)',
+              background: 'none',
+              border: '1px solid var(--stoa-rule)',
+              padding: '3px 10px',
+              cursor: 'pointer',
+              letterSpacing: '0.05em',
+              textTransform: 'uppercase' as const,
+            }}
+          >
+            Generar resumen
+          </button>
           {!isMobile && (
             <>
+              <div style={{ width: 1, height: 10, backgroundColor: 'var(--stoa-rule-strong)' }} />
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
                 {session.sessionRef}
               </span>
@@ -515,6 +546,38 @@ export default function Council() {
           </span>
         </div>
       </div>
+
+      {/* Summary overlay */}
+      {showSummary && (
+        <div
+          style={{ position: 'fixed', inset: 0, zIndex: 200, backgroundColor: 'rgba(12,12,14,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
+          onClick={(e) => { if (e.target === e.currentTarget) setShowSummary(false) }}
+        >
+          <div style={{ backgroundColor: 'var(--stoa-surface-1)', border: '1px solid var(--stoa-rule-strong)', maxWidth: 620, width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ padding: '16px 24px 12px', borderBottom: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexShrink: 0 }}>
+              <div>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>Resumen del Consejo</span>
+                <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 400, color: 'var(--stoa-ink)', margin: '4px 0 0' }}>
+                  {session.sessionRef} · {session.date}
+                </h3>
+              </div>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <button onClick={handleCopy} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: copied ? 'var(--stoa-resolve)' : 'var(--stoa-gold)', background: 'none', border: '1px solid ' + (copied ? 'var(--stoa-resolve)' : 'var(--stoa-gold)'), padding: '4px 10px', cursor: 'pointer', letterSpacing: '0.04em' }}>
+                  {copied ? 'Copiado' : 'Copiar'}
+                </button>
+                <button onClick={() => setShowSummary(false)} style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
+                  Cerrar
+                </button>
+              </div>
+            </div>
+            <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+              <pre style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.7, letterSpacing: '0.01em' }}>
+                {summaryText}
+              </pre>
+            </div>
+          </div>
+        </div>
+      )}
     </motion.div>
   )
 }

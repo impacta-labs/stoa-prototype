@@ -4,11 +4,15 @@ import { chamberEnter, settle, deposit, depositItem } from '../lib/motion'
 import SectionHeader from '../components/primitives/SectionHeader'
 import { useIsMobile } from '../hooks/useViewport'
 import { weatherData } from '../data/fixtures'
+import { useDecisionsStore } from '../store/decisions'
+import { detectarPatrones } from '../lib/ai'
 
 export default function Weather() {
   const [unlocked, setUnlocked] = useState(weatherData.unlocked)
   const isMobile = useIsMobile()
   const w = weatherData
+  const { decisions } = useDecisionsStore()
+  const userPatterns = detectarPatrones(decisions)
 
   return (
     <motion.div
@@ -322,7 +326,7 @@ export default function Weather() {
             </motion.div>
 
             {/* Patrones de Innovación */}
-            {w.innovationPatterns && w.innovationPatterns.length > 0 && (
+            {((w.innovationPatterns && w.innovationPatterns.length > 0) || userPatterns.length > 0) && (
               <motion.div
                 variants={deposit}
                 initial="hidden"
@@ -331,7 +335,27 @@ export default function Weather() {
               >
                 <SectionHeader label="Patrones de Innovación" meta="Derivados del registro de decisiones" />
                 <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {w.innovationPatterns.map((pattern, i) => (
+                  {/* User-generated patterns from pilot decisions */}
+                  {userPatterns.map((pattern, i) => (
+                    <motion.div key={`u-${i}`} variants={depositItem}>
+                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, color: 'var(--stoa-gold)', margin: '0 0 4px' }}>
+                        {pattern.label}
+                      </p>
+                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: '0 0 5px', lineHeight: 1.65 }}>
+                        {pattern.description}
+                      </p>
+                      {pattern.tracedTo.length > 0 && (
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>Trazado:</span>
+                          {pattern.tracedTo.map((ref) => (
+                            <span key={ref} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>{ref}</span>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+                  {/* Fixture patterns */}
+                  {w.innovationPatterns && w.innovationPatterns.map((pattern, i) => (
                     <motion.div key={i} variants={depositItem}>
                       <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, color: 'var(--stoa-ink)', margin: '0 0 4px' }}>
                         {pattern.label}
