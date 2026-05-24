@@ -7,7 +7,7 @@ import type {
 } from '../types'
 import { nextDecisionId } from '../store/decisions'
 
-const ORG = 'Alpha Espai'
+const ORG = 'la organización'
 
 // ── Pregunta estratégica ─────────────────────────────────────────────────────
 
@@ -566,4 +566,31 @@ export function generarResumenConsejo(decisions: UserDecision[], sessionRef: str
   ]
 
   return lines.filter((l) => l !== undefined).join('\n')
+}
+
+// ── IA real: diagnóstico de portfolio ────────────────────────────────────────
+
+export async function generarDiagnosticoPortfolioIA(
+  decisions: UserDecision[],
+  orgName?: string,
+  sector?: string
+): Promise<string> {
+  try {
+    const res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'portfolioDiagnosis',
+        params: { decisions, orgName: orgName || ORG, sector: sector || '' },
+      }),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const { data } = await res.json()
+    return data as string
+  } catch {
+    const activas = decisions.filter((d) => d.status !== 'resuelta')
+    const resueltas = decisions.filter((d) => d.status === 'resuelta')
+    if (decisions.length === 0) return 'Sin decisiones registradas. Crea la primera iniciativa para comenzar el diagnóstico del portfolio.'
+    return `Portfolio de ${orgName || 'la organización'}: ${activas.length} iniciativa${activas.length !== 1 ? 's' : ''} activa${activas.length !== 1 ? 's' : ''}, ${resueltas.length} resuelta${resueltas.length !== 1 ? 's' : ''}. Registra más deliberaciones para obtener un diagnóstico completo.`
+  }
 }
