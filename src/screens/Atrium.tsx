@@ -252,9 +252,9 @@ export default function Atrium() {
           <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(3, 1fr)' : 'repeat(5, 1fr)', gap: isMobile ? '12px 16px' : 0 }}>
             {[
               { value: `${pctHipotesis}%`, label: 'Hipótesis medible', sub: `${conHipotesis}/${decisions.length}`, color: pctHipotesis >= 80 ? 'var(--stoa-resolve)' : pctHipotesis >= 50 ? 'var(--stoa-gold)' : 'var(--stoa-amber)' },
-              { value: prediccionesPendientes, label: 'Predicciones activas', sub: 'pendientes de revisión', color: prediccionesPendientes > 0 ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)' },
+              { value: prediccionesPendientes, label: 'Compromisos activos', sub: 'pendientes de revisión', color: prediccionesPendientes > 0 ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)' },
               { value: tiempoMedio !== null ? `${tiempoMedio}d` : '—', label: 'Tiempo medio', sub: 'por decisión', color: 'var(--stoa-ink)' },
-              { value: sinIndicadores, label: 'Sin indicadores', sub: 'activas sin medir', color: sinIndicadores > 0 ? 'var(--stoa-amber)' : 'var(--stoa-resolve)' },
+              { value: sinIndicadores, label: 'Sin métricas', sub: 'activas sin medir', color: sinIndicadores > 0 ? 'var(--stoa-amber)' : 'var(--stoa-resolve)' },
               { value: cicloCompleto, label: 'Ciclo completo', sub: 'hipótesis+predicción', color: cicloCompleto > 0 ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)' },
             ].map(({ value, label, sub, color }, i, arr) => (
               <div key={label} style={{ paddingLeft: !isMobile && i > 0 ? 20 : 0, paddingRight: !isMobile && i < arr.length - 1 ? 20 : 0, borderLeft: !isMobile && i > 0 ? '1px solid var(--stoa-rule)' : 'none' }}>
@@ -346,13 +346,14 @@ export default function Atrium() {
                 <div key={catLabel}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 4 }}>
                     <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>{catLabel}</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color, letterSpacing: '0.05em' }}>{catDecisions.length} inciativa{catDecisions.length !== 1 ? 's' : ''}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color, letterSpacing: '0.05em' }}>{catDecisions.length} iniciativa{catDecisions.length !== 1 ? 's' : ''}</span>
                   </div>
-                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' as const }}>
+                  <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 3 }}>
                     {catDecisions.map((d) => (
-                      <Link key={d.id} to={`/chamber/${d.id}`} style={{ textDecoration: 'none' }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color, border: `1px solid ${color}40`, padding: '2px 6px', display: 'inline-block', letterSpacing: '0.04em' }}>
-                          {d.id}
+                      <Link key={d.id} to={`/chamber/${d.id}`} style={{ textDecoration: 'none', display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: `${color}99`, flexShrink: 0, letterSpacing: '0.04em' }}>{d.id}</span>
+                        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', lineHeight: 1.3 }}>
+                          {d.titulo.length > 38 ? d.titulo.slice(0, 38) + '…' : d.titulo}
                         </span>
                       </Link>
                     ))}
