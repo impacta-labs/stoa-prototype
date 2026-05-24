@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDecisionsStore } from '../store/decisions'
+import { useOrgStore } from '../store/org'
 import { generarDecision, generarDecisionIA } from '../lib/ai'
 import type { TipoInnovacion } from '../types'
 
@@ -43,6 +44,7 @@ const labelStyle: React.CSSProperties = {
 export default function NuevaIniciativa() {
   const navigate = useNavigate()
   const { decisions, addDecision, closeCreateModal } = useDecisionsStore()
+  const { name: orgName } = useOrgStore()
 
   const [titulo, setTitulo] = useState('')
   const [tipo, setTipo] = useState<TipoInnovacion>('tecnología / IA')
@@ -98,6 +100,7 @@ export default function NuevaIniciativa() {
       owner,
       deadline,
       decisions,
+      orgName,
     })
     addDecision(decision)
     closeCreateModal()

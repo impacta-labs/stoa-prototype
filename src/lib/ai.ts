@@ -450,15 +450,16 @@ export async function generarDecisionIA(params: {
   owner: string
   deadline: string
   decisions: UserDecision[]
+  orgName?: string
 }): Promise<UserDecision> {
-  const { titulo, tipo, weight, owner, deadline, decisions } = params
+  const { titulo, tipo, weight, owner, deadline, decisions, orgName } = params
   try {
     const res = await fetch('/api/ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'generateDecision',
-        params: { titulo, tipo, orgName: ORG },
+        params: { titulo, tipo, orgName: orgName || ORG },
       }),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)
@@ -504,7 +505,8 @@ export async function generarDecisionIA(params: {
 export async function generarResumenConsejoIA(
   decisions: UserDecision[],
   sessionRef: string,
-  date: string
+  date: string,
+  orgName?: string
 ): Promise<string> {
   try {
     const res = await fetch('/api/ai', {
@@ -512,7 +514,7 @@ export async function generarResumenConsejoIA(
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         action: 'generateCouncilSummary',
-        params: { decisions, sessionRef, date, orgName: ORG },
+        params: { decisions, sessionRef, date, orgName: orgName || ORG },
       }),
     })
     if (!res.ok) throw new Error(`HTTP ${res.status}`)

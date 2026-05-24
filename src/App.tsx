@@ -1,6 +1,7 @@
 import { HashRouter, Routes, Route } from 'react-router-dom'
 import Nav from './components/Nav'
 import NuevaIniciativa from './components/NuevaIniciativa'
+import OrgSetup from './components/OrgSetup'
 import Atrium from './screens/Atrium'
 import Chamber from './screens/Chamber'
 import DecisionChamber from './screens/DecisionChamber'
@@ -9,9 +10,11 @@ import Council from './screens/Council'
 import Weather from './screens/Weather'
 import Horizon from './screens/Horizon'
 import { useDecisionsStore } from './store/decisions'
+import { useOrgStore } from './store/org'
 
 function Layout({ children }: { children: React.ReactNode }) {
   const showCreateModal = useDecisionsStore((s) => s.showCreateModal)
+  const { isConfigured, showSetup } = useOrgStore()
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--stoa-bg)' }}>
       <Nav />
@@ -19,6 +22,8 @@ function Layout({ children }: { children: React.ReactNode }) {
         {children}
       </div>
       {showCreateModal && <NuevaIniciativa />}
+      {!isConfigured && <OrgSetup isFirstTime />}
+      {isConfigured && showSetup && <OrgSetup />}
     </div>
   )
 }

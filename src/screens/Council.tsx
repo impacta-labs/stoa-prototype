@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { chamberEnter, settle } from '../lib/motion'
 import { useIsMobile } from '../hooks/useViewport'
 import { useDecisionsStore } from '../store/decisions'
+import { useOrgStore } from '../store/org'
 import { generarResumenConsejoIA } from '../lib/ai'
 import type { UserDecision } from '../types'
 
@@ -162,6 +163,7 @@ export default function Council() {
   const [copied, setCopied] = useState(false)
   const isMobile = useIsMobile()
   const { decisions } = useDecisionsStore()
+  const { name: orgName } = useOrgStore()
 
   const activas = decisions.filter((d) => d.status === 'evaluacion' || d.status === 'deliberando')
   const resueltas = decisions.filter((d) => d.status === 'resuelta')
@@ -185,7 +187,7 @@ export default function Council() {
     setShowSummary(true)
     setLoadingSum(true)
     setSummaryText('')
-    const text = await generarResumenConsejoIA(decisions, sessionRef, sessionDate)
+    const text = await generarResumenConsejoIA(decisions, sessionRef, sessionDate, orgName)
     setSummaryText(text)
     setLoadingSum(false)
   }
