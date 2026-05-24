@@ -16,7 +16,7 @@ export default function Nav() {
   const location = useLocation()
   const isMobile = useIsMobile()
   const { openCreateModal, decisions } = useDecisionsStore()
-  const { name: orgName, isConfigured, openSetup } = useOrgStore()
+  const { name: orgName, isConfigured, openSetup, openOnboarding } = useOrgStore()
   const today = new Date()
   const sessionRef = `S-${String(today.getFullYear()).slice(2)}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
 
@@ -114,6 +114,27 @@ export default function Nav() {
           flexShrink: 0,
         }}
       >
+        {/* Cómo funciona */}
+        {!isMobile && (
+          <button
+            onClick={openOnboarding}
+            title="Ver cómo funciona STOA"
+            style={{
+              fontFamily: 'var(--font-sans)',
+              fontSize: 11,
+              color: 'var(--stoa-ink-3)',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: '0 4px',
+              letterSpacing: '0.02em',
+              flexShrink: 0,
+            }}
+          >
+            ¿Cómo funciona?
+          </button>
+        )}
+
         {/* Nueva iniciativa */}
         <button
           onClick={openCreateModal}
