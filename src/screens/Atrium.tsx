@@ -45,6 +45,19 @@ export default function Atrium() {
 
   const participants = [...new Set(decisions.map((d) => d.owner).filter(Boolean))]
 
+  // Impact KPIs
+  const conHipotesis = decisions.filter((d) => d.businessImpact.hypothesis?.trim()).length
+  const pctHipotesis = decisions.length > 0 ? Math.round(conHipotesis / decisions.length * 100) : 0
+  const prediccionesPendientes = userResolved.filter((d) => d.prediccion?.trim()).length
+  const tiemposDeliberacion = userResolved
+    .filter((d) => d.settledAt)
+    .map((d) => Math.max(0, Math.floor((new Date(d.settledAt!).getTime() - new Date(d.opened).getTime()) / 86_400_000)))
+  const tiempoMedio = tiemposDeliberacion.length > 0
+    ? Math.round(tiemposDeliberacion.reduce((a, b) => a + b, 0) / tiemposDeliberacion.length)
+    : null
+  const sinIndicadores = userActive.filter((d) => !d.businessImpact.leadingIndicators?.length).length
+  const cicloCompleto = userResolved.filter((d) => d.prediccion?.trim() && d.businessImpact.hypothesis?.trim()).length
+
   const today = new Date()
   const year  = today.getFullYear()
   const month = String(today.getMonth() + 1).padStart(2, '0')
@@ -123,6 +136,87 @@ export default function Atrium() {
           </div>
         </motion.div>
       </div>
+
+      {/* Impact Metrics */}
+      {decisions.length > 0 && (
+        <motion.div
+          variants={settle}
+          style={{
+            padding: isMobile ? '16px 20px 20px' : '20px 40px',
+            borderBottom: '1px solid var(--stoa-rule)',
+            backgroundColor: 'var(--stoa-surface-1)',
+          }}
+        >
+          <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: isMobile ? 14 : 16 }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
+              Métricas de Impacto
+            </span>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
+            {!isMobile && (
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
+                Ciclo trazado: hipótesis → decisión → predicción → aprendizaje económico
+              </span>
+            )}
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(5, 1fr)',
+            gap: isMobile ? '16px 24px' : 0,
+          }}>
+            {[
+              {
+                value: `${pctHipotesis}%`,
+                label: 'Con hipótesis medible',
+                sub: `${conHipotesis} de ${decisions.length} iniciativas`,
+                color: pctHipotesis >= 60 ? 'var(--stoa-resolve)' : pctHipotesis > 0 ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)',
+              },
+              {
+                value: prediccionesPendientes,
+                label: 'Predicciones activas',
+                sub: 'pendientes de revisión',
+                color: prediccionesPendientes > 0 ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)',
+              },
+              {
+                value: tiempoMedio !== null ? `${tiempoMedio}d` : '—',
+                label: 'Tiempo medio decisión',
+                sub: 'apertura a cierre',
+                color: 'var(--stoa-ink)',
+              },
+              {
+                value: sinIndicadores,
+                label: 'Sin indicadores',
+                sub: 'requieren atención',
+                color: sinIndicadores > 0 ? 'var(--stoa-amber)' : 'var(--stoa-resolve)',
+              },
+              {
+                value: cicloCompleto,
+                label: 'Ciclo completo trazado',
+                sub: 'hipótesis → predicción',
+                color: cicloCompleto > 0 ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)',
+              },
+            ].map(({ value, label, sub, color }, i, arr) => (
+              <div
+                key={label}
+                style={{
+                  paddingLeft: !isMobile && i > 0 ? 20 : 0,
+                  paddingRight: !isMobile && i < arr.length - 1 ? 20 : 0,
+                  borderLeft: !isMobile && i > 0 ? '1px solid var(--stoa-rule)' : 'none',
+                }}
+              >
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: isMobile ? 26 : 28, color, lineHeight: 1 }}>
+                  {value}
+                </div>
+                <div style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', marginTop: 5, lineHeight: 1.3 }}>
+                  {label}
+                </div>
+                <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', marginTop: 2, letterSpacing: '0.04em' }}>
+                  {sub}
+                </div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
+      )}
 
       {/* Requieren atención */}
       {sinAterrizar.length > 0 && (
