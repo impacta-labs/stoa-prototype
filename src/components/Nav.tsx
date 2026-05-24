@@ -5,7 +5,7 @@ import { useOrgStore } from '../store/org'
 
 const SCREENS = [
   { path: '/',             label: 'Atrio',     short: 'ATR' },
-  { path: '/chamber',     label: 'Decisión',   short: 'D-042' },
+  { path: '/chamber',     label: 'Decisiones',  short: 'DEC' },
   { path: '/reading-room',label: 'Archivo',    short: 'M-017' },
   { path: '/council',     label: 'Consejo',    short: 'SES' },
   { path: '/weather',     label: 'Clima',      short: 'CLIMA' },
