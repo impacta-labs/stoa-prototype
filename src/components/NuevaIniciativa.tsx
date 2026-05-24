@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDecisionsStore } from '../store/decisions'
 import { useOrgStore } from '../store/org'
-import { generarDecision, generarDecisionIA } from '../lib/ai'
+import { generarDecisionIA } from '../lib/ai'
 import type { TipoInnovacion } from '../types'
 
 const TIPOS: Array<{ value: TipoInnovacion; label: string }> = [
@@ -51,26 +51,7 @@ export default function NuevaIniciativa() {
   const [peso, setPeso] = useState<'Menor' | 'Significativa' | 'Mayor' | 'Crítica'>('Significativa')
   const [owner, setOwner] = useState('')
   const [deadline, setDeadline] = useState('Q3 2026')
-  const [preguntaPreview, setPreguntaPreview] = useState('')
-  const [generando, setGenerando] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-
-  // Live preview of strategic question
-  useEffect(() => {
-    if (titulo.trim().length > 8) {
-      const preview = generarDecision({
-        titulo: titulo.trim(),
-        tipo,
-        weight: peso,
-        owner,
-        deadline,
-        decisions,
-      }).preguntaEstrategica
-      setPreguntaPreview(preview)
-    } else {
-      setPreguntaPreview('')
-    }
-  }, [titulo, tipo])
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -79,16 +60,6 @@ export default function NuevaIniciativa() {
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
   }, [closeCreateModal])
-
-  function handleGenerar() {
-    if (!titulo.trim()) return
-    setGenerando(true)
-    setTimeout(() => {
-      const preview = generarDecision({ titulo: titulo.trim(), tipo, weight: peso, owner, deadline, decisions }).preguntaEstrategica
-      setPreguntaPreview(preview)
-      setGenerando(false)
-    }, 500)
-  }
 
   async function handleSubmit() {
     if (!titulo.trim() || submitted) return
@@ -194,27 +165,6 @@ export default function NuevaIniciativa() {
             </select>
           </div>
 
-          {/* AI Preview of strategic question */}
-          {preguntaPreview && (
-            <div style={{ marginBottom: 18, padding: '12px 14px', borderLeft: '2px solid var(--stoa-gold)', backgroundColor: 'rgba(196, 149, 42, 0.04)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 5 }}>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-                  Análisis del sistema · Pregunta estratégica sugerida
-                </span>
-                <button
-                  onClick={handleGenerar}
-                  disabled={generando}
-                  style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.04em' }}
-                >
-                  {generando ? 'Analizando…' : 'Regenerar'}
-                </button>
-              </div>
-              <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.55, fontStyle: 'italic' }}>
-                {preguntaPreview}
-              </p>
-            </div>
-          )}
-
           {/* Row: Peso + Plazo */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 18 }}>
             <div>
@@ -257,7 +207,7 @@ export default function NuevaIniciativa() {
           {/* Actions */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTop: '1px solid var(--stoa-rule)' }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.03em' }}>
-              STOA generará hipótesis, indicadores y condiciones de resolución automáticamente.
+              Se generará: pregunta estratégica · hipótesis de impacto · indicadores · condiciones de resolución
             </p>
             <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
               <button
