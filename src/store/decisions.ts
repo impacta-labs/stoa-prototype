@@ -11,6 +11,8 @@ interface DecisionsState {
   settleDecision: (id: string, verdict: string, prediccion?: string, retrospectiva?: string) => void
   markConditionSatisfied: (decisionId: string, conditionId: string, satisfied: boolean) => void
   addDeliberationEntry: (decisionId: string, entry: Omit<DeliberationEntry, 'id'>) => void
+  loadDemoDecisions: (demos: UserDecision[]) => void
+  clearDecisions: () => void
   togglePilotMode: () => void
   openCreateModal: () => void
   closeCreateModal: () => void
@@ -75,6 +77,9 @@ export const useDecisionsStore = create<DecisionsState>()(
               : d
           ),
         })),
+
+      loadDemoDecisions: (demos) => set({ decisions: demos }),
+      clearDecisions: () => set({ decisions: [] }),
 
       togglePilotMode: () => set((s) => ({ pilotMode: !s.pilotMode })),
       openCreateModal: () => set({ showCreateModal: true }),

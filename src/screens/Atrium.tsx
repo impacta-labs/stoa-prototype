@@ -5,6 +5,7 @@ import SectionHeader from '../components/primitives/SectionHeader'
 import { useIsMobile } from '../hooks/useViewport'
 import { useDecisionsStore, daysActive } from '../store/decisions'
 import { useOrgStore } from '../store/org'
+import { IFF_ORG, IFF_DECISIONS } from '../data/iffDemo'
 
 const statusColor: Record<string, string> = {
   evaluacion:  'var(--stoa-ink-3)',
@@ -29,8 +30,20 @@ const tipoLabel: Record<string, string> = {
 
 export default function Atrium() {
   const isMobile = useIsMobile()
-  const { decisions, openCreateModal } = useDecisionsStore()
-  const { name: orgName, sector, isConfigured } = useOrgStore()
+  const { decisions, openCreateModal, loadDemoDecisions, clearDecisions } = useDecisionsStore()
+  const { name: orgName, sector, isConfigured, configure, resetOrg } = useOrgStore()
+
+  const handleLoadIFF = () => {
+    configure(IFF_ORG.name, IFF_ORG.sector, IFF_ORG.context)
+    loadDemoDecisions(IFF_DECISIONS)
+  }
+
+  const handleClear = () => {
+    if (window.confirm('¿Resetear todos los datos? Esta acción no se puede deshacer.')) {
+      clearDecisions()
+      resetOrg()
+    }
+  }
 
   const userActive   = decisions.filter((d) => d.status === 'evaluacion' || d.status === 'deliberando')
   const userResolved = decisions.filter((d) => d.status === 'resuelta')
@@ -116,22 +129,43 @@ export default function Atrium() {
                   </p>
                 </div>
               )}
-              <button
-                onClick={openCreateModal}
-                style={{
-                  fontFamily: 'var(--font-sans)',
-                  fontSize: 12,
-                  fontWeight: 500,
-                  color: 'var(--stoa-bg)',
-                  backgroundColor: 'var(--stoa-gold)',
-                  border: 'none',
-                  padding: '8px 18px',
-                  cursor: 'pointer',
-                  letterSpacing: '0.02em',
-                }}
-              >
-                + Nueva iniciativa
-              </button>
+              <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+                <button
+                  onClick={openCreateModal}
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 12,
+                    fontWeight: 500,
+                    color: 'var(--stoa-bg)',
+                    backgroundColor: 'var(--stoa-gold)',
+                    border: 'none',
+                    padding: '8px 18px',
+                    cursor: 'pointer',
+                    letterSpacing: '0.02em',
+                  }}
+                >
+                  + Nueva iniciativa
+                </button>
+                {!isMobile && decisions.length > 0 && (
+                  <button
+                    onClick={handleClear}
+                    style={{
+                      fontFamily: 'var(--font-mono)',
+                      fontSize: 9,
+                      color: 'var(--stoa-ink-3)',
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      letterSpacing: '0.06em',
+                      padding: '4px 6px',
+                      textTransform: 'uppercase' as const,
+                    }}
+                    title="Resetear todos los datos"
+                  >
+                    Resetear
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </motion.div>
@@ -218,8 +252,108 @@ export default function Atrium() {
         </motion.div>
       )}
 
+      {decisions.length === 0 && (
+        <motion.div
+          variants={settle}
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column' as const,
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: isMobile ? '40px 24px' : '60px 40px',
+            gap: 32,
+            textAlign: 'center' as const,
+          }}
+        >
+          <div style={{ maxWidth: 520 }}>
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.14em', textTransform: 'uppercase' as const, margin: '0 0 16px' }}>
+              Sistema de trazabilidad de decisiones estratégicas
+            </p>
+            <p style={{ fontFamily: 'var(--font-serif)', fontSize: isMobile ? 20 : 26, color: 'var(--stoa-ink-2)', margin: '0 0 14px', lineHeight: 1.35 }}>
+              Cada decisión de innovación necesita una hipótesis medible y una predicción comprometida.
+            </p>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.7, maxWidth: 440, marginLeft: 'auto', marginRight: 'auto' }}>
+              STOA cierra el ciclo completo: hipótesis → decisión → predicción → aprendizaje económico. El único sistema que conecta la innovación con la cuenta de resultados.
+            </p>
+          </div>
+
+          <div style={{
+            border: '1px solid var(--stoa-rule)',
+            padding: isMobile ? '24px 24px' : '28px 36px',
+            maxWidth: 460,
+            width: '100%',
+            textAlign: 'left' as const,
+            position: 'relative' as const,
+          }}>
+            <div style={{ position: 'absolute' as const, top: -1, left: 0, right: 0, height: 2, backgroundColor: 'var(--stoa-gold)' }} />
+            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.12em', textTransform: 'uppercase' as const, margin: '0 0 8px' }}>
+              Escenario de demostración
+            </p>
+            <p style={{ fontFamily: 'var(--font-serif)', fontSize: 18, color: 'var(--stoa-ink)', margin: '0 0 6px', lineHeight: 1.25 }}>
+              IFF — Post-transformación estratégica
+            </p>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: '0 0 8px', lineHeight: 1.6 }}>
+              Ingredientes · Fragancias · Sabores · 5 decisiones reales
+            </p>
+            <div style={{ display: 'flex', gap: isMobile ? 16 : 24, marginBottom: 20, flexWrap: 'wrap' as const }}>
+              {[
+                { v: '80%', l: 'hipótesis medible' },
+                { v: '2', l: 'predicciones activas' },
+                { v: '2', l: 'ciclos completos' },
+              ].map(({ v, l }) => (
+                <div key={l}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 18, color: 'var(--stoa-gold)', lineHeight: 1 }}>{v}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', marginTop: 3, letterSpacing: '0.05em' }}>{l}</div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={handleLoadIFF}
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 12,
+                fontWeight: 500,
+                color: 'var(--stoa-bg)',
+                backgroundColor: 'var(--stoa-gold)',
+                border: 'none',
+                padding: '10px 0',
+                cursor: 'pointer',
+                letterSpacing: '0.02em',
+                width: '100%',
+              }}
+            >
+              Cargar escenario IFF →
+            </button>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column' as const, alignItems: 'center', gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+              <div style={{ width: 36, height: 1, backgroundColor: 'var(--stoa-rule)' }} />
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em' }}>O</span>
+              <div style={{ width: 36, height: 1, backgroundColor: 'var(--stoa-rule)' }} />
+            </div>
+            <button
+              onClick={openCreateModal}
+              style={{
+                fontFamily: 'var(--font-sans)',
+                fontSize: 12,
+                color: 'var(--stoa-gold)',
+                background: 'none',
+                border: '1px solid rgba(196, 149, 42, 0.4)',
+                padding: '8px 20px',
+                cursor: 'pointer',
+                letterSpacing: '0.02em',
+              }}
+            >
+              + Empezar con tu organización
+            </button>
+          </div>
+        </motion.div>
+      )}
+
       {/* Requieren atención */}
-      {sinAterrizar.length > 0 && (
+      {decisions.length > 0 && sinAterrizar.length > 0 && (
         <motion.div
           variants={settle}
           style={{
@@ -249,6 +383,8 @@ export default function Atrium() {
           </div>
         </motion.div>
       )}
+
+      {decisions.length > 0 && <>
 
       {/* Estado Actual + En Deliberación */}
       <div className="stoa-col-left-280" style={{ borderBottom: '1px solid var(--stoa-rule)' }}>
@@ -397,6 +533,7 @@ export default function Atrium() {
       {/* En Maduración + Recientemente Resueltas */}
       <div className="stoa-col-2" style={{ borderBottom: '1px solid var(--stoa-rule)', flex: 1 }}>
 
+
         {/* En Maduración */}
         <motion.div
           variants={deposit}
@@ -503,6 +640,8 @@ export default function Atrium() {
           </div>
         </motion.div>
       </div>
+
+      </>}
 
       {/* Memory Band */}
       <motion.div
