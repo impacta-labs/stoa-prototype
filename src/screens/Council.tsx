@@ -1,193 +1,191 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { chamberEnter, settle } from '../lib/motion'
 import { useIsMobile } from '../hooks/useViewport'
-import { councilSession, councilHistory, type StationItem } from '../data/fixtures'
 import { useDecisionsStore } from '../store/decisions'
 import { generarResumenConsejoIA } from '../lib/ai'
+import type { UserDecision } from '../types'
 
-const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI']
+const ROMAN = ['I', 'II', 'III']
 
-function ResolvedItem({ text }: { text: string }) {
+const STATIONS = [
+  {
+    id: 'revision',
+    label: 'En Revisión',
+    description: 'Iniciativas activas. Hipótesis, indicadores y estado de deliberación.',
+  },
+  {
+    id: 'resueltas',
+    label: 'Resueltas',
+    description: 'Decisiones cerradas con veredicto registrado y predicción de impacto.',
+  },
+  {
+    id: 'cierre',
+    label: 'Cierre',
+    description: 'Acciones pendientes, condiciones sin cumplir y registro de sesión.',
+  },
+]
+
+function DecisionRevisionCard({ decision }: { decision: UserDecision }) {
+  const navigate = useNavigate()
   return (
-    <div style={{ display: 'flex', gap: 14, padding: '14px 0', alignItems: 'flex-start' }}>
-      <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0, paddingTop: 3 }}>
-        <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)' }} />
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
-          Acordado
+    <div
+      onClick={() => navigate(`/chamber/${decision.id}`)}
+      style={{
+        padding: '18px 0',
+        borderBottom: '1px solid var(--stoa-rule)',
+        cursor: 'pointer',
+      }}
+    >
+      <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginBottom: 6, flexWrap: 'wrap' as const }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.08em' }}>
+          {decision.id}
         </span>
-      </div>
-      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
-        {text}
-      </p>
-    </div>
-  )
-}
-
-function ActionItem({ actor, due, text }: { actor?: string; due?: string; text: string }) {
-  return (
-    <div style={{ display: 'flex', gap: 14, padding: '14px 0', alignItems: 'flex-start' }}>
-      <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 3, flexShrink: 0, paddingTop: 2 }}>
-        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-          <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)' }} />
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
-            Acción
-          </span>
-        </div>
-        {actor && (
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-2)', paddingLeft: 10 }}>
-            {actor}
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
+          {decision.tipoInnovacion}
+        </span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
+          {decision.weight}
+        </span>
+        {decision.owner && (
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+            {decision.owner}
           </span>
         )}
-        {due && (
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', paddingLeft: 10, letterSpacing: '0.03em' }}>
-            Plazo {due}
+        {decision.deadline && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.04em' }}>
+            {decision.deadline}
           </span>
         )}
       </div>
-      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
-        {text}
+      <p style={{
+        fontFamily: 'var(--font-serif)',
+        fontSize: 15,
+        color: 'var(--stoa-ink)',
+        margin: '0 0 10px',
+        lineHeight: 1.55,
+        fontStyle: 'italic',
+      }}>
+        {decision.preguntaEstrategica}
       </p>
-    </div>
-  )
-}
-
-function ScheduleItem({ text }: { text: string }) {
-  return (
-    <div style={{ display: 'flex', gap: 14, padding: '14px 0', alignItems: 'flex-start' }}>
-      <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-ink-3)', flexShrink: 0, marginTop: 5 }} />
-      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.65, flex: 1, letterSpacing: '0.02em' }}>
-        {text}
-      </p>
-    </div>
-  )
-}
-
-function AttributedItem({ actor, date, text, index }: { actor?: string; date?: string; text: string; index: number }) {
-  return (
-    <div style={{ display: 'flex', gap: 16, padding: '16px 0', alignItems: 'flex-start' }}>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', width: 20, flexShrink: 0, paddingTop: 2 }}>
-        {String(index + 1).padStart(2, '0')}
-      </span>
-      <div style={{ flex: 1 }}>
-        {(actor || date) && (
-          <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 5 }}>
-            {actor && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, color: 'var(--stoa-ink-2)' }}>{actor}</span>}
-            {date && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{date}</span>}
-          </div>
-        )}
-        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65 }}>
-          {text}
+      {decision.businessImpact.hypothesis && (
+        <p style={{
+          fontFamily: 'var(--font-sans)',
+          fontSize: 12,
+          color: 'var(--stoa-ink-3)',
+          margin: '0 0 8px',
+          lineHeight: 1.55,
+        }}>
+          {decision.businessImpact.hypothesis.slice(0, 140)}{decision.businessImpact.hypothesis.length > 140 ? '…' : ''}
         </p>
+      )}
+      {decision.businessImpact.leadingIndicators.length > 0 && (
+        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
+          {decision.businessImpact.leadingIndicators.slice(0, 2).map((ind, i) => (
+            <span key={i} style={{
+              fontFamily: 'var(--font-mono)',
+              fontSize: 9,
+              color: 'var(--stoa-ink-3)',
+              backgroundColor: 'rgba(255,255,255,0.03)',
+              border: '1px solid var(--stoa-rule)',
+              padding: '2px 8px',
+              letterSpacing: '0.02em',
+            }}>
+              {ind.slice(0, 60)}{ind.length > 60 ? '…' : ''}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+function DecisionResolvedCard({ decision }: { decision: UserDecision }) {
+  return (
+    <div style={{ padding: '18px 0', borderBottom: '1px solid var(--stoa-rule)' }}>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginBottom: 6, flexWrap: 'wrap' as const }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.08em' }}>
+          {decision.id}
+        </span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
+          {decision.tipoInnovacion}
+        </span>
+        {decision.owner && (
+          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+            {decision.owner}
+          </span>
+        )}
       </div>
-    </div>
-  )
-}
-
-function NoteItem({ text, index }: { text: string; index: number }) {
-  return (
-    <div style={{ display: 'flex', gap: 16, padding: '16px 0', alignItems: 'flex-start' }}>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', width: 20, flexShrink: 0, paddingTop: 2 }}>
-        {String(index + 1).padStart(2, '0')}
-      </span>
-      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
-        {text}
+      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: '0 0 10px', lineHeight: 1.5 }}>
+        {decision.preguntaEstrategica}
       </p>
-    </div>
-  )
-}
-
-function SignalItem_({ ref_: ref_, text, index }: { ref_?: string; text: string; index: number }) {
-  return (
-    <div style={{ display: 'flex', gap: 16, padding: '16px 0', alignItems: 'flex-start' }}>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', width: 20, flexShrink: 0, paddingTop: 2 }}>
-        {String(index + 1).padStart(2, '0')}
-      </span>
-      <div style={{ flex: 1 }}>
-        {ref_ && (
-          <div style={{ marginBottom: 5 }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>
-              {ref_}
+      {decision.selectedVerdict && (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', marginBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 5, alignItems: 'center', flexShrink: 0, paddingTop: 3 }}>
+            <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)' }} />
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
+              Acordado
             </span>
           </div>
+          <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.6, flex: 1 }}>
+            {decision.selectedVerdict}
+          </p>
+        </div>
+      )}
+      {decision.prediccion && (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, flexShrink: 0, width: 65, paddingTop: 2 }}>
+            Predicción
+          </span>
+          <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.55, flex: 1 }}>
+            {decision.prediccion}
+          </p>
+        </div>
+      )}
+      <div style={{ display: 'flex', gap: 14, marginTop: 10 }}>
+        {decision.businessImpact.reviewHorizon && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+            Revisión: {decision.businessImpact.reviewHorizon}
+          </span>
         )}
-        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65 }}>
-          {text}
-        </p>
       </div>
     </div>
   )
-}
-
-function renderStationItem(item: StationItem, index: number, isClosing: boolean) {
-  if (isClosing) {
-    switch (item.type) {
-      case 'resolved':
-        return (
-          <div key={index} style={{ borderBottom: '1px solid var(--stoa-rule)' }}>
-            <ResolvedItem text={item.text} />
-          </div>
-        )
-      case 'action':
-        return (
-          <div key={index} style={{ borderBottom: '1px solid var(--stoa-rule)' }}>
-            <ActionItem actor={item.actor} due={item.due} text={item.text} />
-          </div>
-        )
-      case 'schedule':
-        return (
-          <div key={index} style={{ borderBottom: '1px solid var(--stoa-rule)' }}>
-            <ScheduleItem text={item.text} />
-          </div>
-        )
-      default:
-        return (
-          <div key={index} style={{ borderBottom: '1px solid var(--stoa-rule)' }}>
-            <NoteItem text={item.text} index={index} />
-          </div>
-        )
-    }
-  }
-
-  const withBorder = { borderBottom: '1px solid var(--stoa-rule)' }
-  switch (item.type) {
-    case 'signal':
-      return (
-        <div key={index} style={withBorder}>
-          <SignalItem_ ref_={item.ref} text={item.text} index={index} />
-        </div>
-      )
-    case 'attributed':
-      return (
-        <div key={index} style={withBorder}>
-          <AttributedItem actor={item.actor} date={item.date} text={item.text} index={index} />
-        </div>
-      )
-    default:
-      return (
-        <div key={index} style={withBorder}>
-          <NoteItem text={item.text} index={index} />
-        </div>
-      )
-  }
 }
 
 export default function Council() {
-  const [activeStation, setActiveStation] = useState(councilSession.stations[0].id)
+  const [activeStation, setActiveStation] = useState('revision')
   const [showSummary, setShowSummary] = useState(false)
   const [summaryText, setSummaryText] = useState('')
   const [loadingSum, setLoadingSum] = useState(false)
   const [copied, setCopied] = useState(false)
   const isMobile = useIsMobile()
-  const session = councilSession
   const { decisions } = useDecisionsStore()
-  const userResolved = decisions.filter((d) => d.status === 'resuelta')
+
+  const activas = decisions.filter((d) => d.status === 'evaluacion' || d.status === 'deliberando')
+  const resueltas = decisions.filter((d) => d.status === 'resuelta')
+
+  const today = new Date()
+  const sessionDate = today.toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
+  const sessionRef = `S-${String(today.getFullYear()).slice(2)}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
+
+  const owners = [...new Set(decisions.map((d) => d.owner).filter(Boolean))]
+
+  const pendingConditions = activas.flatMap((d) =>
+    d.resolutionConditions.filter((c) => !c.satisfied).map((c) => ({ decision: d, condition: c }))
+  )
+  const sinResponsable = decisions.filter((d) => d.status !== 'resuelta' && !d.owner)
+
+  const activeIndex = STATIONS.findIndex((s) => s.id === activeStation)
+  const currentStation = STATIONS[activeIndex]
+  const isClosing = currentStation.id === 'cierre'
 
   async function handleOpenSummary() {
     setShowSummary(true)
     setLoadingSum(true)
     setSummaryText('')
-    const text = await generarResumenConsejoIA(decisions, session.sessionRef, session.date)
+    const text = await generarResumenConsejoIA(decisions, sessionRef, sessionDate)
     setSummaryText(text)
     setLoadingSum(false)
   }
@@ -198,10 +196,6 @@ export default function Council() {
       setTimeout(() => setCopied(false), 2000)
     })
   }
-  const activeIndex = session.stations.findIndex((s) => s.id === activeStation)
-  const currentStation = session.stations[activeIndex]
-  const isClosing = currentStation.id === 'closing'
-  const presentCount = session.participants.filter((p) => p.present).length
 
   return (
     <motion.div
@@ -229,7 +223,7 @@ export default function Council() {
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.06em' }}>
-              {session.sessionRef}
+              {sessionRef}
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
             <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -250,25 +244,23 @@ export default function Council() {
               letterSpacing: '-0.005em',
             }}
           >
-            {session.title}
+            Revisión Estratégica · {activas.length} iniciativa{activas.length !== 1 ? 's' : ''} activa{activas.length !== 1 ? 's' : ''}
+            {resueltas.length > 0 ? ` · ${resueltas.length} resuelta${resueltas.length !== 1 ? 's' : ''}` : ''}
           </h1>
         </motion.div>
         {!isMobile && (
           <motion.div variants={settle} style={{ textAlign: 'right' as const }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '0 0 2px', letterSpacing: '0.04em' }}>
-              {session.date} · Apertura {session.startTime}
-            </p>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '0 0 2px' }}>
-              Convocado por {session.convener}
+              {sessionDate}
             </p>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.03em' }}>
-              Anterior: {session.previousSession.ref} · {session.previousSession.date}
+              {decisions.length} decisión{decisions.length !== 1 ? 'es' : ''} en el sistema
             </p>
           </motion.div>
         )}
       </div>
 
-      {/* Main body: Agenda Rail + Content */}
+      {/* Main body */}
       <div
         style={{
           flex: 1,
@@ -277,7 +269,7 @@ export default function Council() {
           flexDirection: isMobile ? 'column' as const : 'row' as const,
         }}
       >
-        {/* Agenda Rail (desktop) / Horizontal tabs (mobile) */}
+        {/* Sidebar / tabs */}
         {isMobile ? (
           <div
             style={{
@@ -289,7 +281,7 @@ export default function Council() {
               scrollbarWidth: 'none' as const,
             }}
           >
-            {session.stations.map((station, i) => {
+            {STATIONS.map((station, i) => {
               const active = station.id === activeStation
               const past = i < activeIndex
               return (
@@ -328,32 +320,23 @@ export default function Council() {
               flexShrink: 0,
             }}
           >
-            {/* Session mini-card */}
             <div style={{ padding: '18px 18px 14px', borderBottom: '1px solid var(--stoa-rule)' }}>
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', margin: '0 0 3px', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-                {session.sessionRef}
+                {sessionRef}
               </p>
               <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: '0 0 2px' }}>
-                {session.date}
+                {sessionDate}
               </p>
               <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '0 0 10px' }}>
-                {session.convener.split(' ')[0]} {session.convener.split(' ')[1][0]}. · {session.startTime}
+                {activas.length} activa{activas.length !== 1 ? 's' : ''} · {resueltas.length} resuelta{resueltas.length !== 1 ? 's' : ''}
               </p>
-              <div style={{ paddingTop: 8, borderTop: '1px solid var(--stoa-rule)' }}>
-                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 2px', letterSpacing: '0.05em' }}>
-                  Ant.: {session.previousSession.ref}
-                </p>
-                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.35 }}>
-                  {session.previousSession.focus}
-                </p>
-              </div>
             </div>
 
-            {/* Agenda items */}
             <div style={{ flex: 1 }}>
-              {session.stations.map((station, i) => {
+              {STATIONS.map((station, i) => {
                 const active = station.id === activeStation
                 const past = i < activeIndex
+                const count = station.id === 'revision' ? activas.length : station.id === 'resueltas' ? resueltas.length : null
                 return (
                   <button
                     key={station.id}
@@ -375,11 +358,16 @@ export default function Council() {
                       <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: active ? 'var(--stoa-gold)' : past ? 'var(--stoa-resolve)' : 'var(--stoa-ink-3)', width: 18, flexShrink: 0 }}>
                         {ROMAN[i]}
                       </span>
-                      <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: active ? 500 : 400, color: active ? 'var(--stoa-ink)' : past ? 'var(--stoa-ink-2)' : 'var(--stoa-ink-3)', lineHeight: 1.2 }}>
+                      <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: active ? 500 : 400, color: active ? 'var(--stoa-ink)' : past ? 'var(--stoa-ink-2)' : 'var(--stoa-ink-3)', lineHeight: 1.2, flex: 1 }}>
                         {station.label}
                       </span>
-                      {past && (
-                        <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)', flexShrink: 0, marginLeft: 'auto' }} />
+                      {count !== null && count > 0 && (
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: active ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)' }}>
+                          {count}
+                        </span>
+                      )}
+                      {past && count === null && (
+                        <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)', flexShrink: 0 }} />
                       )}
                     </div>
                     <p style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '0 0 0 28px', lineHeight: 1.35, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical' as const, overflow: 'hidden' }}>
@@ -389,32 +377,11 @@ export default function Council() {
                 )
               })}
             </div>
-
-            {/* History */}
-            <div style={{ padding: '12px 18px', borderTop: '1px solid var(--stoa-rule)' }}>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 6px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
-                Historial de sesiones
-              </p>
-              {councilHistory.slice(0, 2).map((h) => (
-                <div key={h.ref} style={{ marginBottom: 5 }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
-                    {h.ref}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)', marginLeft: 6 }}>
-                    {h.date.replace('2026', '').trim().replace(' · ', '')}
-                  </span>
-                </div>
-              ))}
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '8px 0 0', letterSpacing: '0.05em' }}>
-                Próximo: {session.nextCouncil}
-              </p>
-            </div>
           </div>
         )}
 
         {/* Content area */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0 }}>
-          {/* Station header */}
           <div
             style={{
               padding: isMobile ? '14px 20px 12px' : '18px 40px 14px',
@@ -439,18 +406,12 @@ export default function Council() {
               >
                 {currentStation.label}
               </h2>
-              {isClosing && (
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-                  {currentStation.content.filter(c => c.type === 'resolved').length} acordados · {currentStation.content.filter(c => c.type === 'action').length} acciones
-                </span>
-              )}
             </div>
             <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.45 }}>
               {currentStation.description}
             </p>
           </div>
 
-          {/* Minutes content */}
           <div style={{ flex: 1, padding: isMobile ? '0 20px' : '0 40px', overflowY: 'auto' as const, backgroundColor: isClosing ? 'rgba(196, 149, 42, 0.02)' : 'transparent' }}>
             <AnimatePresence mode="wait">
               <motion.div
@@ -459,100 +420,142 @@ export default function Council() {
                 animate={{ opacity: 1, transition: { duration: 0.25, ease: 'easeOut' } }}
                 exit={{ opacity: 0, transition: { duration: 0.12 } }}
               >
-                {currentStation.content.map((item, i) =>
-                  renderStationItem(item, i, isClosing)
+                {/* En Revisión */}
+                {activeStation === 'revision' && (
+                  <>
+                    {activas.length === 0 ? (
+                      <div style={{ padding: '32px 0' }}>
+                        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
+                          No hay iniciativas activas en el sistema. Crea una nueva iniciativa desde el Atrio para comenzar la sesión.
+                        </p>
+                      </div>
+                    ) : (
+                      activas.map((d) => <DecisionRevisionCard key={d.id} decision={d} />)
+                    )}
+                  </>
                 )}
 
-                {/* User resolved decisions from pilot */}
-                {userResolved.length > 0 && (
-                  <div style={{ paddingTop: 20, paddingBottom: 8, borderTop: '1px solid var(--stoa-rule)', marginTop: 8 }}>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 14 }}>
-                      <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)', flexShrink: 0 }} />
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-                        Resoluciones piloto · {userResolved.length}
-                      </span>
-                    </div>
-                    {userResolved.map((d, i) => (
-                      <div key={d.id} style={{ padding: '14px 0', borderBottom: i < userResolved.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
-                        <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginBottom: 6, flexWrap: 'wrap' as const }}>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.07em' }}>{d.id}</span>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>{d.tipoInnovacion}</span>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>{d.owner || 'Sin responsable'}</span>
-                        </div>
-                        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: '0 0 10px', lineHeight: 1.5 }}>
-                          {d.preguntaEstrategica}
+                {/* Resueltas */}
+                {activeStation === 'resueltas' && (
+                  <>
+                    {resueltas.length === 0 ? (
+                      <div style={{ padding: '32px 0' }}>
+                        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
+                          Ninguna decisión resuelta en esta sesión. Las decisiones resueltas desde las Cámaras aparecerán aquí.
                         </p>
-                        {d.selectedVerdict && (
-                          <div style={{ display: 'flex', gap: 14, padding: '12px 0', alignItems: 'flex-start' }}>
-                            <div style={{ display: 'flex', gap: 6, alignItems: 'center', flexShrink: 0, paddingTop: 3 }}>
-                              <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)' }} />
-                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
-                                Acordado
-                              </span>
-                            </div>
-                            <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.65, flex: 1 }}>
-                              {d.selectedVerdict}
-                            </p>
-                          </div>
-                        )}
-                        {d.prediccion && (
-                          <div style={{ display: 'flex', gap: 14, padding: '8px 0', alignItems: 'flex-start' }}>
-                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, flexShrink: 0, width: 70 }}>
-                              Predicción
-                            </span>
-                            <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.55, flex: 1 }}>
-                              {d.prediccion}
-                            </p>
-                          </div>
-                        )}
-                        <div style={{ display: 'flex', gap: 16, marginTop: 8, flexWrap: 'wrap' as const }}>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                            Revisión: {d.businessImpact.reviewHorizon}
-                          </span>
-                          {d.businessImpact.leadingIndicators.length > 0 && (
-                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                              {d.businessImpact.leadingIndicators[0]}
-                            </span>
-                          )}
-                        </div>
                       </div>
-                    ))}
+                    ) : (
+                      resueltas.map((d) => <DecisionResolvedCard key={d.id} decision={d} />)
+                    )}
+                  </>
+                )}
+
+                {/* Cierre */}
+                {activeStation === 'cierre' && (
+                  <div style={{ paddingTop: 8, paddingBottom: 32 }}>
+                    {/* Acciones pendientes */}
+                    {pendingConditions.length > 0 && (
+                      <div style={{ marginBottom: 28 }}>
+                        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, margin: '18px 0 10px' }}>
+                          Condiciones de resolución pendientes · {pendingConditions.length}
+                        </p>
+                        {pendingConditions.map(({ decision, condition }, i) => (
+                          <div key={i} style={{ display: 'flex', gap: 14, padding: '12px 0', borderBottom: '1px solid var(--stoa-rule)', alignItems: 'flex-start' }}>
+                            <div style={{ flexShrink: 0, paddingTop: 3 }}>
+                              <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-amber)' }} />
+                            </div>
+                            <div style={{ flex: 1 }}>
+                              <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: '0 0 4px', lineHeight: 1.5 }}>
+                                {condition.label}
+                              </p>
+                              <div style={{ display: 'flex', gap: 10 }}>
+                                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.05em' }}>
+                                  {decision.id}
+                                </span>
+                                {condition.owner && condition.owner !== 'Por asignar' && (
+                                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                                    {condition.owner}
+                                  </span>
+                                )}
+                                {condition.due && condition.due !== 'Por definir' && (
+                                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.03em' }}>
+                                    {condition.due}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Sin responsable */}
+                    {sinResponsable.length > 0 && (
+                      <div style={{ marginBottom: 28 }}>
+                        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, margin: '18px 0 10px' }}>
+                          Sin responsable asignado · {sinResponsable.length}
+                        </p>
+                        {sinResponsable.map((d) => (
+                          <div key={d.id} style={{ display: 'flex', gap: 10, padding: '10px 0', borderBottom: '1px solid var(--stoa-rule)', alignItems: 'baseline' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.06em' }}>{d.id}</span>
+                            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)' }}>{d.titulo}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Estado si todo OK */}
+                    {pendingConditions.length === 0 && sinResponsable.length === 0 && decisions.length > 0 && (
+                      <div style={{ padding: '18px 0' }}>
+                        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
+                          Todas las iniciativas tienen responsable asignado y las condiciones de resolución están documentadas.
+                        </p>
+                      </div>
+                    )}
+
+                    {decisions.length === 0 && (
+                      <div style={{ padding: '18px 0' }}>
+                        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
+                          No hay decisiones en el sistema para cerrar.
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Registro de sesión */}
+                    {decisions.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1, transition: { delay: 0.2, duration: 0.4 } }}
+                        style={{ paddingTop: 20, borderTop: '1px solid var(--stoa-rule)', marginTop: 8 }}
+                      >
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+                          <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)', flexShrink: 0 }} />
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
+                            Registro de sesión
+                          </span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
+                            {sessionRef} · {sessionDate}
+                          </span>
+                        </div>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '8px 0 0 12px', lineHeight: 1.6 }}>
+                          {activas.length} iniciativa{activas.length !== 1 ? 's' : ''} en evaluación · {resueltas.length} resuelta{resueltas.length !== 1 ? 's' : ''} · {decisions.length} en el sistema.
+                          Este registro entrará en la Memoria Estratégica al generar el resumen.
+                        </p>
+                      </motion.div>
+                    )}
+                    <div style={{ height: 24 }} />
                   </div>
                 )}
 
-                {/* Closing resolution footer */}
-                {isClosing && (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1, transition: { delay: 0.2, duration: 0.4 } }}
-                    style={{ paddingTop: 20, paddingBottom: 24 }}
-                  >
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-                      <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)', flexShrink: 0 }} />
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-                        Registro de sesión
-                      </span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
-                        {session.sessionRef} · {session.date}
-                      </span>
-                    </div>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '8px 0 0 12px', lineHeight: 1.6 }}>
-                      Este registro entrará en la Memoria Estratégica al cierre de la sesión.
-                      Resolución de D-042 requerida antes del 30 Jun 2026.
-                      Próximo consejo: {session.nextCouncil}.
-                    </p>
-                  </motion.div>
-                )}
-
-                {!isClosing && <div style={{ height: 24 }} />}
+                {activeStation !== 'cierre' && <div style={{ height: 24 }} />}
               </motion.div>
             </AnimatePresence>
           </div>
         </div>
       </div>
 
-      {/* Participants + Status bar */}
+      {/* Bottom bar */}
       <div
         style={{
           borderTop: '1px solid var(--stoa-rule)',
@@ -565,20 +568,21 @@ export default function Council() {
           flexShrink: 0,
         }}
       >
-        <div style={{ display: 'flex', gap: isMobile ? 10 : 18, alignItems: 'center', overflow: 'hidden' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, flexShrink: 0 }}>
-            {presentCount}/{session.participants.length}
-          </span>
-          {session.participants.map((p) => (
-            <div key={p.name} style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0 }}>
-              <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: p.present ? 'var(--stoa-resolve)' : 'var(--stoa-ink-3)' }} />
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: isMobile ? 10 : 11, color: p.present ? 'var(--stoa-ink-2)' : 'var(--stoa-ink-3)', fontStyle: p.present ? 'normal' : 'italic' }}>
-                {isMobile
-                  ? p.name.split(' ')[0][0] + '. ' + p.name.split(' ')[1]
-                  : p.name.split(' ')[0] + ' ' + p.name.split(' ')[1][0] + '.'}
-              </span>
-            </div>
-          ))}
+        <div style={{ display: 'flex', gap: isMobile ? 10 : 16, alignItems: 'center', overflow: 'hidden' }}>
+          {owners.length > 0 ? (
+            owners.map((owner) => (
+              <div key={owner} style={{ display: 'flex', gap: 4, alignItems: 'center', flexShrink: 0 }}>
+                <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)' }} />
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: isMobile ? 10 : 11, color: 'var(--stoa-ink-2)' }}>
+                  {isMobile ? owner.split(' ')[0] : owner}
+                </span>
+              </div>
+            ))
+          ) : (
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
+              Sin participantes registrados
+            </span>
+          )}
         </div>
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
@@ -602,7 +606,7 @@ export default function Council() {
             <>
               <div style={{ width: 1, height: 10, backgroundColor: 'var(--stoa-rule-strong)' }} />
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
-                {session.sessionRef}
+                {sessionRef}
               </span>
               <div style={{ width: 1, height: 10, backgroundColor: 'var(--stoa-rule-strong)' }} />
             </>
@@ -625,7 +629,7 @@ export default function Council() {
               <div>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>Resumen del Consejo</span>
                 <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 400, color: 'var(--stoa-ink)', margin: '4px 0 0' }}>
-                  {session.sessionRef} · {session.date}
+                  {sessionRef} · {sessionDate}
                 </h3>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
