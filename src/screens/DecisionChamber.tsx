@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { chamberEnter, settle, deposit, depositItem } from '../lib/motion'
 import SectionHeader from '../components/primitives/SectionHeader'
@@ -124,6 +124,11 @@ export default function DecisionChamber() {
         <motion.div variants={settle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8, flexWrap: 'wrap' as const, gap: 6 }}>
             <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' as const }}>
+              <Link to="/chamber" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginRight: 4 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em' }}>←</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em' }}>Decisiones</span>
+              </Link>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-rule-strong)' }}>·</span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
                 Sala de Decisión
               </span>
@@ -487,6 +492,31 @@ export default function DecisionChamber() {
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
                     Revisión de evidencia: {decision.businessImpact.reviewHorizon}
                   </span>
+                </div>
+                <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--stoa-rule)' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 10 }}>
+                    ¿Qué sigue?
+                  </span>
+                  <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 6 }}>
+                    <Link to="/" style={{ textDecoration: 'none' }}>
+                      <div style={{ padding: '8px 12px', border: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>Ver el Atrio</span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>→</span>
+                      </div>
+                    </Link>
+                    <Link to="/reading-room" style={{ textDecoration: 'none' }}>
+                      <div style={{ padding: '8px 12px', border: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>Revisar el Archivo</span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>→</span>
+                      </div>
+                    </Link>
+                    <Link to="/chamber" style={{ textDecoration: 'none' }}>
+                      <div style={{ padding: '8px 12px', border: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>Abrir otra decisión</span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>→</span>
+                      </div>
+                    </Link>
+                  </div>
                 </div>
               </div>
             ) : (
