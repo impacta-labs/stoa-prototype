@@ -4,7 +4,7 @@ import { chamberEnter, settle } from '../lib/motion'
 import { useIsMobile } from '../hooks/useViewport'
 import { councilSession, councilHistory, type StationItem } from '../data/fixtures'
 import { useDecisionsStore } from '../store/decisions'
-import { generarResumenConsejo } from '../lib/ai'
+import { generarResumenConsejoIA } from '../lib/ai'
 
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI']
 
@@ -175,13 +175,22 @@ function renderStationItem(item: StationItem, index: number, isClosing: boolean)
 export default function Council() {
   const [activeStation, setActiveStation] = useState(councilSession.stations[0].id)
   const [showSummary, setShowSummary] = useState(false)
+  const [summaryText, setSummaryText] = useState('')
+  const [loadingSum, setLoadingSum] = useState(false)
   const [copied, setCopied] = useState(false)
   const isMobile = useIsMobile()
   const session = councilSession
   const { decisions } = useDecisionsStore()
   const userResolved = decisions.filter((d) => d.status === 'resuelta')
 
-  const summaryText = generarResumenConsejo(decisions, session.sessionRef, session.date)
+  async function handleOpenSummary() {
+    setShowSummary(true)
+    setLoadingSum(true)
+    setSummaryText('')
+    const text = await generarResumenConsejoIA(decisions, session.sessionRef, session.date)
+    setSummaryText(text)
+    setLoadingSum(false)
+  }
 
   function handleCopy() {
     navigator.clipboard.writeText(summaryText).then(() => {
@@ -574,7 +583,7 @@ export default function Council() {
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
           <button
-            onClick={() => setShowSummary(true)}
+            onClick={handleOpenSummary}
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 9,
@@ -620,7 +629,21 @@ export default function Council() {
                 </h3>
               </div>
               <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-                <button onClick={handleCopy} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: copied ? 'var(--stoa-resolve)' : 'var(--stoa-gold)', background: 'none', border: '1px solid ' + (copied ? 'var(--stoa-resolve)' : 'var(--stoa-gold)'), padding: '4px 10px', cursor: 'pointer', letterSpacing: '0.04em' }}>
+                <button
+                  onClick={handleCopy}
+                  disabled={loadingSum || !summaryText}
+                  style={{
+                    fontFamily: 'var(--font-mono)',
+                    fontSize: 10,
+                    color: copied ? 'var(--stoa-resolve)' : loadingSum ? 'var(--stoa-ink-3)' : 'var(--stoa-gold)',
+                    background: 'none',
+                    border: '1px solid ' + (copied ? 'var(--stoa-resolve)' : loadingSum ? 'var(--stoa-rule)' : 'var(--stoa-gold)'),
+                    padding: '4px 10px',
+                    cursor: loadingSum || !summaryText ? 'default' : 'pointer',
+                    letterSpacing: '0.04em',
+                    opacity: loadingSum ? 0.5 : 1,
+                  }}
+                >
                   {copied ? 'Copiado' : 'Copiar'}
                 </button>
                 <button onClick={() => setShowSummary(false)} style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
@@ -629,9 +652,15 @@ export default function Council() {
               </div>
             </div>
             <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
-              <pre style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.7, letterSpacing: '0.01em' }}>
-                {summaryText}
-              </pre>
+              {loadingSum ? (
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.04em', lineHeight: 1.7 }}>
+                  Generando resumen con IA…
+                </p>
+              ) : (
+                <pre style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.7, letterSpacing: '0.01em' }}>
+                  {summaryText}
+                </pre>
+              )}
             </div>
           </div>
         </div>

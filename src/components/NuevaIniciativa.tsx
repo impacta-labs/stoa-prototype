@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useDecisionsStore } from '../store/decisions'
-import { generarDecision } from '../lib/ai'
+import { generarDecision, generarDecisionIA } from '../lib/ai'
 import type { TipoInnovacion } from '../types'
 
 const TIPOS: Array<{ value: TipoInnovacion; label: string }> = [
@@ -88,10 +88,10 @@ export default function NuevaIniciativa() {
     }, 500)
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (!titulo.trim() || submitted) return
     setSubmitted(true)
-    const decision = generarDecision({
+    const decision = await generarDecisionIA({
       titulo: titulo.trim(),
       tipo,
       weight: peso,
@@ -276,9 +276,10 @@ export default function NuevaIniciativa() {
                   padding: '8px 20px',
                   cursor: canSubmit ? 'pointer' : 'default',
                   letterSpacing: '0.02em',
+                  opacity: submitted ? 0.7 : 1,
                 }}
               >
-                Crear iniciativa
+                {submitted ? 'Analizando…' : 'Crear iniciativa'}
               </button>
             </div>
           </div>

@@ -441,6 +441,88 @@ export function detectarPatrones(
   return patterns
 }
 
+// ── IA real: generar decisión vía proxy ─────────────────────────────────────
+
+export async function generarDecisionIA(params: {
+  titulo: string
+  tipo: TipoInnovacion
+  weight: 'Menor' | 'Significativa' | 'Mayor' | 'Crítica'
+  owner: string
+  deadline: string
+  decisions: UserDecision[]
+}): Promise<UserDecision> {
+  const { titulo, tipo, weight, owner, deadline, decisions } = params
+  try {
+    const res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'generateDecision',
+        params: { titulo, tipo, orgName: ORG },
+      }),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const { data } = await res.json()
+
+    const id = nextDecisionId(decisions)
+    const businessImpact: BusinessImpact = {
+      hypothesis: data.hipotesis,
+      plLever: PL_LEVERS[tipo] ?? 'Por definir',
+      leadingIndicators: data.indicadoresLideres ?? [],
+      laggingIndicators: LAGGING_INDICATORS[tipo] ?? [],
+      responsible: owner,
+      reviewHorizon: derivarHorizonte(deadline),
+      operationalEffect: generarEfectoOperativo(titulo, tipo),
+      riskOfInaction: data.riesgoNoActuar,
+      evidenceStatus: 'Sin datos',
+    }
+
+    return {
+      id,
+      titulo,
+      preguntaEstrategica: data.preguntaEstrategica,
+      tipoInnovacion: tipo,
+      weight,
+      owner,
+      deadline,
+      opened: new Date().toISOString(),
+      status: 'evaluacion',
+      businessImpact,
+      verdictOptions: VERDICT_OPTIONS[tipo] ?? ['Proceder', 'Aplazar', 'Replantear'],
+      selectedVerdict: null,
+      settledAt: null,
+      deliberationEntries: [],
+      resolutionConditions: generarCondiciones(tipo),
+    }
+  } catch {
+    return generarDecision(params)
+  }
+}
+
+// ── IA real: resumen del Consejo vía proxy ───────────────────────────────────
+
+export async function generarResumenConsejoIA(
+  decisions: UserDecision[],
+  sessionRef: string,
+  date: string
+): Promise<string> {
+  try {
+    const res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'generateCouncilSummary',
+        params: { decisions, sessionRef, date, orgName: ORG },
+      }),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const { data } = await res.json()
+    return data as string
+  } catch {
+    return generarResumenConsejo(decisions, sessionRef, date)
+  }
+}
+
 // ── Resumen del Consejo ──────────────────────────────────────────────────────
 
 export function generarResumenConsejo(decisions: UserDecision[], sessionRef: string, date: string): string {
