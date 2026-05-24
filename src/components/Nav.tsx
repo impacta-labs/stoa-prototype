@@ -4,12 +4,12 @@ import { useDecisionsStore } from '../store/decisions'
 import { useOrgStore } from '../store/org'
 
 const SCREENS = [
-  { path: '/',             label: 'Atrio',     short: 'ATR' },
-  { path: '/chamber',     label: 'Decisiones',  short: 'DEC' },
-  { path: '/reading-room',label: 'Archivo',    short: 'M-017' },
-  { path: '/council',     label: 'Consejo',    short: 'SES' },
-  { path: '/weather',     label: 'Clima',       short: 'CLM' },
-  { path: '/horizon',     label: 'Horizonte',   short: 'HZN' },
+  { path: '/',             label: 'Dashboard',     short: 'DASH' },
+  { path: '/chamber',     label: 'Decisiones',    short: 'DEC'  },
+  { path: '/reading-room',label: 'Historial',     short: 'HIST' },
+  { path: '/council',     label: 'Sala de Reunión', short: 'REU' },
+  { path: '/weather',     label: 'Pulso org.',    short: 'PULSO'},
+  { path: '/horizon',     label: 'Compromisos',   short: 'COM'  },
 ]
 
 export default function Nav() {
@@ -134,10 +134,11 @@ export default function Nav() {
           {isMobile ? '+' : '+ Nueva'}
         </button>
 
-        {/* Pilot mode toggle */}
+        {/* Demo mode toggle */}
         {!isMobile && (
           <button
             onClick={togglePilotMode}
+            title="Modo guiado: muestra pistas contextuales en cada pantalla"
             style={{
               fontFamily: 'var(--font-mono)',
               fontSize: 9,
@@ -151,7 +152,7 @@ export default function Nav() {
               flexShrink: 0,
             }}
           >
-            {pilotMode ? 'Piloto ●' : 'Piloto'}
+            {pilotMode ? 'Guiado ●' : 'Guiado'}
           </button>
         )}
 

@@ -120,7 +120,7 @@ export default function NuevaIniciativa() {
               Nueva Iniciativa
             </span>
             <h2 style={{ fontFamily: 'var(--font-serif)', fontSize: 20, fontWeight: 400, color: 'var(--stoa-ink)', margin: '5px 0 0', lineHeight: 1.2 }}>
-              Encuadrar una decisión estratégica
+              Registrar nueva iniciativa
             </h2>
           </div>
           <button
@@ -151,7 +151,7 @@ export default function NuevaIniciativa() {
 
           {/* Tipo */}
           <div style={{ marginBottom: 18 }}>
-            <label style={labelStyle}>Tipo de innovación</label>
+            <label style={labelStyle}>Categoría</label>
             <select
               value={tipo}
               onChange={(e) => setTipo(e.target.value as TipoInnovacion)}
@@ -168,7 +168,7 @@ export default function NuevaIniciativa() {
           {/* Row: Peso + Plazo */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 18 }}>
             <div>
-              <label style={labelStyle}>Peso estratégico</label>
+              <label style={labelStyle}>Prioridad</label>
               <select
                 value={peso}
                 onChange={(e) => setPeso(e.target.value as typeof peso)}
@@ -207,7 +207,7 @@ export default function NuevaIniciativa() {
           {/* Actions */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 16, borderTop: '1px solid var(--stoa-rule)' }}>
             <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.03em' }}>
-              Se generará: pregunta estratégica · hipótesis de impacto · indicadores · condiciones de resolución
+              La IA generará: pregunta clave · hipótesis de impacto · indicadores de seguimiento
             </p>
             <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
               <button

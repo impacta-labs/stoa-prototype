@@ -38,7 +38,7 @@ function PilotHint({ text }: { text: string }) {
   if (!pilotMode) return null
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', backgroundColor: 'rgba(196, 149, 42, 0.05)', borderLeft: '2px solid var(--stoa-gold)', marginBottom: 10 }}>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, flexShrink: 0 }}>Modo Piloto</span>
+      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, flexShrink: 0 }}>Modo Guiado</span>
       <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>{text}</span>
     </div>
   )
