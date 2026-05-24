@@ -117,17 +117,27 @@ export default function DecisionChamber() {
 
   // Shared panel content — rendered inline after deliberation on mobile,
   // and in the sidebar on desktop.
+  const allConditionsMet = decision.resolutionConditions.length > 0 && conditionsMet === decision.resolutionConditions.length
+
   const conditionsPanel = (
     <>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-        <SectionHeader label="Condiciones de resolución" />
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: conditionsMet === decision.resolutionConditions.length && decision.resolutionConditions.length > 0 ? 'var(--stoa-resolve)' : 'var(--stoa-ink-3)' }}>
+      {/* Header row */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: allConditionsMet ? 'var(--stoa-resolve)' : 'var(--stoa-ink-2)' }}>
+          Condiciones de resolución
+        </span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: allConditionsMet ? 'var(--stoa-resolve)' : 'var(--stoa-amber)', padding: '2px 8px', border: `1px solid ${allConditionsMet ? 'var(--stoa-resolve)' : 'var(--stoa-amber)'}` }}>
           {conditionsMet}/{decision.resolutionConditions.length}
         </span>
       </div>
-      {!isSettled && (
+      {!isSettled && !allConditionsMet && (
         <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 10px', letterSpacing: '0.04em' }}>
           Pulsa cada condición para marcarla como cumplida
+        </p>
+      )}
+      {!isSettled && allConditionsMet && (
+        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-resolve)', margin: '0 0 10px' }}>
+          Todas las condiciones cumplidas — listo para cerrar.
         </p>
       )}
       <div>
@@ -135,12 +145,12 @@ export default function DecisionChamber() {
           <div
             key={cond.id}
             onClick={() => !isSettled && markConditionSatisfied(decision.id, cond.id, !cond.satisfied)}
-            style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid var(--stoa-rule)', cursor: isSettled ? 'default' : 'pointer' }}
+            style={{ display: 'flex', gap: 12, alignItems: 'flex-start', padding: '11px 0', borderBottom: '1px solid var(--stoa-rule)', cursor: isSettled ? 'default' : 'pointer' }}
           >
-            <div style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: cond.satisfied ? 'var(--stoa-resolve)' : 'transparent', border: `1.5px solid ${cond.satisfied ? 'var(--stoa-resolve)' : 'var(--stoa-ink-3)'}`, flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              {cond.satisfied && <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: 'var(--stoa-bg)' }} />}
+            <div style={{ width: 20, height: 20, borderRadius: '50%', backgroundColor: cond.satisfied ? 'var(--stoa-resolve)' : 'transparent', border: `1.5px solid ${cond.satisfied ? 'var(--stoa-resolve)' : 'var(--stoa-rule-strong)'}`, flexShrink: 0, marginTop: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {cond.satisfied && <span style={{ color: 'var(--stoa-bg)', fontSize: 11, lineHeight: 1 }}>✓</span>}
             </div>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: cond.satisfied ? 'var(--stoa-ink-3)' : 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.4, textDecoration: cond.satisfied ? 'line-through' : 'none' }}>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: cond.satisfied ? 'var(--stoa-ink-3)' : 'var(--stoa-ink)', margin: 0, lineHeight: 1.4, textDecoration: cond.satisfied ? 'line-through' : 'none' }}>
               {cond.label}
             </p>
           </div>
@@ -151,53 +161,59 @@ export default function DecisionChamber() {
 
   const resolutionPanel = isSettled ? (
     <>
-      <SectionHeader label="Resolución registrada" />
-      <div style={{ marginTop: 10, padding: '12px 14px', borderLeft: '2px solid var(--stoa-resolve)' }}>
-        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.55 }}>
+      {/* Archived state header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 20, paddingBottom: 14, borderBottom: '1px solid var(--stoa-resolve)' }}>
+        <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)', flexShrink: 0 }} />
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-resolve)', letterSpacing: '0.1em', textTransform: 'uppercase' as const }}>
+          Decisión archivada
+        </span>
+      </div>
+
+      {/* Verdict — dominant */}
+      <div style={{ marginBottom: 16 }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 8 }}>
+          Resolución
+        </span>
+        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 20, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.3 }}>
           {decision.selectedVerdict || selectedVerdict}
         </p>
       </div>
+
+      {/* Prediction — gold callout */}
       {(decision.prediccion || prediccionText) && (
-        <div style={{ marginTop: 8, padding: '10px 14px', borderLeft: '2px solid var(--stoa-ink-3)' }}>
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>
-            Predicción vinculada
+        <div style={{ marginBottom: 16, padding: '12px 16px', borderLeft: '3px solid var(--stoa-gold)', backgroundColor: 'rgba(196, 149, 42, 0.05)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 6 }}>
+            Predicción
           </span>
-          <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.55 }}>
+          <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.55 }}>
             {decision.prediccion || prediccionText}
           </p>
         </div>
       )}
-      <div style={{ marginTop: 10, padding: '10px 14px', backgroundColor: 'var(--stoa-surface-1)' }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em', display: 'block', marginBottom: 4 }}>
-          Decisión archivada en Memoria Estratégica
-        </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-          Revisión de evidencia: {decision.businessImpact.reviewHorizon}
-        </span>
-      </div>
-      <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--stoa-rule)' }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 10 }}>
+
+      {/* Archive note — subdued */}
+      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em', margin: '0 0 20px' }}>
+        Memoria Estratégica · Revisión: {decision.businessImpact.reviewHorizon}
+      </p>
+
+      {/* ¿Qué sigue? — distinct action panel */}
+      <div style={{ backgroundColor: 'var(--stoa-surface-2)', padding: '16px', borderTop: '2px solid var(--stoa-rule-strong)' }}>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, color: 'var(--stoa-ink-2)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 12 }}>
           ¿Qué sigue?
         </span>
-        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 6 }}>
-          <Link to="/" style={{ textDecoration: 'none' }}>
-            <div style={{ padding: '8px 12px', border: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>Ver el Atrio</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>→</span>
-            </div>
-          </Link>
-          <Link to="/reading-room" style={{ textDecoration: 'none' }}>
-            <div style={{ padding: '8px 12px', border: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>Revisar el Archivo</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>→</span>
-            </div>
-          </Link>
-          <Link to="/chamber" style={{ textDecoration: 'none' }}>
-            <div style={{ padding: '8px 12px', border: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>Abrir otra decisión</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>→</span>
-            </div>
-          </Link>
+        <div style={{ display: 'flex', flexDirection: 'column' as const }}>
+          {[
+            { to: '/', label: 'Ver el Atrio' },
+            { to: '/reading-room', label: 'Revisar el Archivo' },
+            { to: '/chamber', label: 'Abrir otra decisión' },
+          ].map(({ to, label }, i, arr) => (
+            <Link key={to} to={to} style={{ textDecoration: 'none' }}>
+              <div style={{ padding: '13px 0', borderBottom: i < arr.length - 1 ? '1px solid var(--stoa-rule)' : 'none', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink)' }}>{label}</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--stoa-gold)' }}>→</span>
+              </div>
+            </Link>
+          ))}
         </div>
       </div>
     </>
@@ -398,10 +414,17 @@ export default function DecisionChamber() {
         >
           {/* Deliberation — first, because this is where the session happens */}
           <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
-              <SectionHeader label="Deliberación" meta={`${decision.deliberationEntries.length} entrada${decision.deliberationEntries.length !== 1 ? 's' : ''}`} />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingBottom: 10, borderBottom: '1px solid var(--stoa-rule)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--stoa-ink-2)' }}>
+                  Deliberación
+                </span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                  {decision.deliberationEntries.length} entrada{decision.deliberationEntries.length !== 1 ? 's' : ''}
+                </span>
+              </div>
               {isSettled && (
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, padding: '2px 8px', border: '1px solid var(--stoa-resolve)' }}>
                   Cerrada
                 </span>
               )}
@@ -471,19 +494,21 @@ export default function DecisionChamber() {
           {/* Mobile: conditions + close appear here, right after deliberation */}
           {isMobile && (
             <>
-              <motion.div variants={depositItem} style={{ marginBottom: 28, paddingTop: 24, borderTop: '1px solid var(--stoa-rule)' }}>
+              <motion.div variants={depositItem} style={{ marginBottom: 0, marginLeft: -20, marginRight: -20, padding: '20px 20px', backgroundColor: 'var(--stoa-surface-1)', borderTop: '1px solid var(--stoa-rule-strong)', borderBottom: '1px solid var(--stoa-rule-strong)' }}>
                 {conditionsPanel}
               </motion.div>
-              <motion.div variants={depositItem} style={{ marginBottom: 28, paddingTop: 24, borderTop: '1px solid var(--stoa-rule)' }}>
+              <motion.div variants={depositItem} style={{ marginBottom: 0, marginLeft: -20, marginRight: -20, padding: '24px 20px', borderBottom: '1px solid var(--stoa-rule-strong)' }}>
                 {resolutionPanel}
               </motion.div>
             </>
           )}
 
-          {/* Marco de Impacto */}
-          <motion.div variants={depositItem} style={{ marginBottom: 32, paddingTop: 24, borderTop: '1px solid var(--stoa-rule)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
-              <SectionHeader label="Marco de Impacto" />
+          {/* Marco de Impacto — reference zone, visually de-emphasized */}
+          <motion.div variants={depositItem} style={{ marginBottom: 32, paddingTop: isMobile ? 28 : 24, borderTop: isMobile ? 'none' : '1px solid var(--stoa-rule)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14, paddingBottom: 10, borderBottom: '1px solid var(--stoa-rule)' }}>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--stoa-ink-3)' }}>
+                Marco de Impacto
+              </span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: decision.businessImpact.evidenceStatus === 'Sin datos' ? 'var(--stoa-ink-3)' : 'var(--stoa-gold)', letterSpacing: '0.06em' }}>
                 Evidencia: {decision.businessImpact.evidenceStatus}
               </span>
