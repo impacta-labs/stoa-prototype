@@ -71,7 +71,7 @@ export default function Horizon() {
           </span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
           <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-            Perspectiva prospectiva · {period}
+            Apuestas activas · compromisos prospectivos · {period}
           </span>
         </motion.div>
         {!isMobile && (
@@ -186,21 +186,46 @@ export default function Horizon() {
                 animate="visible"
                 style={{ padding: isMobile ? '20px 20px' : '24px 40px 24px 24px' }}
               >
-                <SectionHeader label="Predicciones registradas" meta={`${withPredictions.length} activas`} />
+                <SectionHeader label="Compromisos prospectivos" meta={`${withPredictions.length} pendientes de verificación`} />
                 <div style={{ marginTop: 14 }}>
                   {withPredictions.map((d, i) => (
                     <motion.div
                       key={d.id}
                       variants={depositItem}
-                      style={{ padding: '11px 0', borderBottom: i < withPredictions.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}
+                      style={{ padding: '14px 0', borderBottom: i < withPredictions.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}
                     >
-                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 5 }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{d.id}</span>
-                        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>{d.businessImpact.reviewHorizon}</span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                          <Link to={`/chamber/${d.id}`} style={{ textDecoration: 'none' }}>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>{d.id}</span>
+                          </Link>
+                          {d.businessImpact.reviewHorizon && (
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.04em' }}>
+                              Revisión: {d.businessImpact.reviewHorizon}
+                            </span>
+                          )}
+                        </div>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                          pendiente
+                        </span>
                       </div>
-                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.4, flex: 1, borderLeft: '1px solid var(--stoa-gold)', paddingLeft: 10 }}>
+                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: '0 0 8px', lineHeight: 1.45, borderLeft: '2px solid var(--stoa-gold)', paddingLeft: 10 }}>
                         {d.prediccion}
                       </p>
+                      {d.businessImpact.leadingIndicators.length > 0 && (
+                        <div style={{ paddingLeft: 12 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>Confirma: </span>
+                          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                            {d.businessImpact.leadingIndicators[0]}
+                          </span>
+                        </div>
+                      )}
+                      {d.businessImpact.plLever && (
+                        <div style={{ paddingLeft: 12, marginTop: 3 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>P&L: </span>
+                          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{d.businessImpact.plLever}</span>
+                        </div>
+                      )}
                     </motion.div>
                   ))}
                 </div>

@@ -7,6 +7,7 @@ interface OrgState {
   context: string
   isConfigured: boolean
   configure: (name: string, sector: string, context: string) => void
+  resetOrg: () => void
   showSetup: boolean
   openSetup: () => void
   closeSetup: () => void
@@ -23,6 +24,9 @@ export const useOrgStore = create<OrgState>()(
 
       configure: (name, sector, context) =>
         set({ name, sector, context, isConfigured: true, showSetup: false }),
+
+      resetOrg: () =>
+        set({ name: '', sector: '', context: '', isConfigured: false }),
 
       openSetup: () => set({ showSetup: true }),
       closeSetup: () => set({ showSetup: false }),
