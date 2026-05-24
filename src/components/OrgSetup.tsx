@@ -55,8 +55,13 @@ const STEPS = [
 ]
 
 export default function OrgSetup({ isFirstTime }: { isFirstTime?: boolean }) {
-  const { configure, closeSetup, isConfigured } = useOrgStore()
+  const { configure, closeSetup, isConfigured, closeOnboarding } = useOrgStore()
   const { loadDemoDecisions } = useDecisionsStore()
+
+  function dismiss() {
+    closeSetup()
+    closeOnboarding()
+  }
 
   const [step, setStep] = useState<'welcome' | 'form'>(isFirstTime ? 'welcome' : 'form')
   const [name, setName] = useState('')
@@ -195,7 +200,7 @@ export default function OrgSetup({ isFirstTime }: { isFirstTime?: boolean }) {
         justifyContent: 'center',
         padding: '16px',
       }}
-      onClick={e => { if (!isFirstTime && e.target === e.currentTarget) closeSetup() }}
+      onClick={e => { if (!isFirstTime && e.target === e.currentTarget) dismiss() }}
     >
       <div
         style={{
@@ -276,7 +281,7 @@ export default function OrgSetup({ isFirstTime }: { isFirstTime?: boolean }) {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, paddingTop: 16, borderTop: '1px solid var(--stoa-rule)' }}>
             {!isFirstTime && isConfigured && (
               <button
-                onClick={closeSetup}
+                onClick={dismiss}
                 style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', background: 'none', border: '1px solid var(--stoa-rule)', padding: '8px 16px', cursor: 'pointer' }}
               >
                 Cancelar

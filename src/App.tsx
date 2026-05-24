@@ -14,7 +14,7 @@ import { useOrgStore } from './store/org'
 
 function Layout({ children }: { children: React.ReactNode }) {
   const showCreateModal = useDecisionsStore((s) => s.showCreateModal)
-  const { isConfigured, showSetup } = useOrgStore()
+  const { isConfigured, showSetup, showOnboarding } = useOrgStore()
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', backgroundColor: 'var(--stoa-bg)' }}>
       <Nav />
@@ -24,6 +24,7 @@ function Layout({ children }: { children: React.ReactNode }) {
       {showCreateModal && <NuevaIniciativa />}
       {!isConfigured && <OrgSetup isFirstTime />}
       {isConfigured && showSetup && <OrgSetup />}
+      {isConfigured && showOnboarding && <OrgSetup isFirstTime />}
     </div>
   )
 }
