@@ -74,6 +74,55 @@ export default async function handler(req: any, res: any) {
       return res.json({ success: true, data: text })
     }
 
+    if (action === 'portfolioDiagnosis') {
+      const { decisions, orgName = 'la organización', sector = '' } = params
+
+      const activas = decisions.filter(
+        (d: any) => d.status === 'evaluacion' || d.status === 'deliberando'
+      )
+      const resueltas = decisions.filter((d: any) => d.status === 'resuelta')
+      const conHipotesis = decisions.filter((d: any) => d.businessImpact?.hypothesis?.trim()).length
+      const conPrediccion = resueltas.filter((d: any) => d.prediccion?.trim()).length
+      const tiposCount: Record<string, number> = {}
+      decisions.forEach((d: any) => {
+        tiposCount[d.tipoInnovacion] = (tiposCount[d.tipoInnovacion] || 0) + 1
+      })
+      const tiposResumen = Object.entries(tiposCount)
+        .map(([tipo, n]) => `${tipo}: ${n}`)
+        .join(', ')
+
+      const message = await client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 600,
+        messages: [
+          {
+            role: 'user',
+            content: `Eres un asesor estratégico experto en innovación corporativa analizando el portfolio de decisiones de ${orgName}${sector ? ` (${sector})` : ''}.
+
+Portfolio actual:
+- Total decisiones: ${decisions.length}
+- Activas: ${activas.length} (en evaluación o deliberación)
+- Resueltas: ${resueltas.length}
+- Con hipótesis medible: ${conHipotesis}/${decisions.length}
+- Con predicción comprometida: ${conPrediccion}/${resueltas.length}
+- Tipos de innovación: ${tiposResumen || 'Sin datos'}
+- Decisiones activas: ${activas.map((d: any) => `"${d.titulo}" (${d.weight}, ${d.owner || 'sin responsable'})`).join('; ') || 'Ninguna'}
+
+Escribe un diagnóstico estratégico del portfolio en español (150-200 palabras) que:
+1. Evalúe el balance del portfolio (¿hay concentración excesiva en algún tipo?)
+2. Identifique el riesgo más urgente (decisión que necesita atención inmediata)
+3. Señale la oportunidad más relevante
+4. Proponga la siguiente acción concreta para el equipo
+
+Tono: asesor estratégico senior. Directo. Sin rodeos. Sin introducción genérica.`,
+          },
+        ],
+      })
+
+      const text = message.content[0].type === 'text' ? message.content[0].text : ''
+      return res.json({ success: true, data: text })
+    }
+
     return res.status(400).json({ error: 'Unknown action' })
   } catch (error: any) {
     console.error('AI proxy error:', error?.message)
