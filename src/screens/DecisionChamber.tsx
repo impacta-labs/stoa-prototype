@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { chamberEnter, settle, deposit, depositItem } from '../lib/motion'
 import SectionHeader from '../components/primitives/SectionHeader'
@@ -67,6 +67,9 @@ export default function DecisionChamber() {
   if (!decision) {
     return (
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 12, padding: '60px 40px' }}>
+        <Link to="/chamber" style={{ textDecoration: 'none', marginBottom: 8 }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>← Decisiones</span>
+        </Link>
         <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
           Decisión no encontrada
         </span>
@@ -112,6 +115,168 @@ export default function DecisionChamber() {
     setEditingHypothesis(false)
   }
 
+  // Shared panel content — rendered inline after deliberation on mobile,
+  // and in the sidebar on desktop.
+  const conditionsPanel = (
+    <>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
+        <SectionHeader label="Condiciones de resolución" />
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: conditionsMet === decision.resolutionConditions.length && decision.resolutionConditions.length > 0 ? 'var(--stoa-resolve)' : 'var(--stoa-ink-3)' }}>
+          {conditionsMet}/{decision.resolutionConditions.length}
+        </span>
+      </div>
+      {!isSettled && (
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 10px', letterSpacing: '0.04em' }}>
+          Pulsa cada condición para marcarla como cumplida
+        </p>
+      )}
+      <div>
+        {decision.resolutionConditions.map((cond) => (
+          <div
+            key={cond.id}
+            onClick={() => !isSettled && markConditionSatisfied(decision.id, cond.id, !cond.satisfied)}
+            style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid var(--stoa-rule)', cursor: isSettled ? 'default' : 'pointer' }}
+          >
+            <div style={{ width: 12, height: 12, borderRadius: '50%', backgroundColor: cond.satisfied ? 'var(--stoa-resolve)' : 'transparent', border: `1.5px solid ${cond.satisfied ? 'var(--stoa-resolve)' : 'var(--stoa-ink-3)'}`, flexShrink: 0, marginTop: 2, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {cond.satisfied && <div style={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: 'var(--stoa-bg)' }} />}
+            </div>
+            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: cond.satisfied ? 'var(--stoa-ink-3)' : 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.4, textDecoration: cond.satisfied ? 'line-through' : 'none' }}>
+              {cond.label}
+            </p>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+
+  const resolutionPanel = isSettled ? (
+    <>
+      <SectionHeader label="Resolución registrada" />
+      <div style={{ marginTop: 10, padding: '12px 14px', borderLeft: '2px solid var(--stoa-resolve)' }}>
+        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.55 }}>
+          {decision.selectedVerdict || selectedVerdict}
+        </p>
+      </div>
+      {(decision.prediccion || prediccionText) && (
+        <div style={{ marginTop: 8, padding: '10px 14px', borderLeft: '2px solid var(--stoa-ink-3)' }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>
+            Predicción vinculada
+          </span>
+          <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.55 }}>
+            {decision.prediccion || prediccionText}
+          </p>
+        </div>
+      )}
+      <div style={{ marginTop: 10, padding: '10px 14px', backgroundColor: 'var(--stoa-surface-1)' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em', display: 'block', marginBottom: 4 }}>
+          Decisión archivada en Memoria Estratégica
+        </span>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+          Revisión de evidencia: {decision.businessImpact.reviewHorizon}
+        </span>
+      </div>
+      <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--stoa-rule)' }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 10 }}>
+          ¿Qué sigue?
+        </span>
+        <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 6 }}>
+          <Link to="/" style={{ textDecoration: 'none' }}>
+            <div style={{ padding: '8px 12px', border: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>Ver el Atrio</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>→</span>
+            </div>
+          </Link>
+          <Link to="/reading-room" style={{ textDecoration: 'none' }}>
+            <div style={{ padding: '8px 12px', border: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>Revisar el Archivo</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>→</span>
+            </div>
+          </Link>
+          <Link to="/chamber" style={{ textDecoration: 'none' }}>
+            <div style={{ padding: '8px 12px', border: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>Abrir otra decisión</span>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>→</span>
+            </div>
+          </Link>
+        </div>
+      </div>
+    </>
+  ) : (
+    <>
+      <div style={{ marginBottom: 14 }}>
+        <SectionHeader label="Cerrar decisión" />
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '6px 0 0', letterSpacing: '0.04em', lineHeight: 1.6 }}>
+          1 · Selecciona o escribe la resolución<br />
+          2 · Añade una predicción (opcional)<br />
+          3 · Registra para archivar
+        </p>
+      </div>
+      <PilotHint text="La resolución y la predicción quedan en el Archivo Estratégico como precedente." />
+      <div>
+        {decision.verdictOptions.map((opt) => (
+          <button
+            key={opt}
+            onClick={() => setSelectedVerdict(opt)}
+            style={{
+              display: 'block',
+              width: '100%',
+              textAlign: 'left' as const,
+              fontFamily: 'var(--font-sans)',
+              fontSize: 11,
+              color: selectedVerdict === opt ? 'var(--stoa-ink)' : 'var(--stoa-ink-3)',
+              backgroundColor: selectedVerdict === opt ? 'rgba(196, 149, 42, 0.08)' : 'transparent',
+              border: '1px solid ' + (selectedVerdict === opt ? 'var(--stoa-gold)' : 'var(--stoa-rule)'),
+              padding: '7px 10px',
+              cursor: 'pointer',
+              marginBottom: 4,
+              lineHeight: 1.4,
+            }}
+          >
+            {selectedVerdict === opt ? '● ' : '○ '}{opt}
+          </button>
+        ))}
+        <textarea
+          value={selectedVerdict}
+          onChange={(e) => setSelectedVerdict(e.target.value)}
+          placeholder="O escribe la resolución completa aquí…"
+          rows={2}
+          style={{ width: '100%', fontFamily: 'var(--font-serif)', fontSize: 12, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule-strong)', padding: '8px 12px', outline: 'none', resize: 'vertical' as const, lineHeight: 1.55, boxSizing: 'border-box' as const, marginTop: 6 }}
+        />
+        <div style={{ marginTop: 12 }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 5 }}>
+            Predicción · ¿qué esperas que ocurra?
+          </span>
+          <textarea
+            value={prediccionText}
+            onChange={(e) => setPrediccionText(e.target.value)}
+            placeholder="Ej: En 90 días el tiempo de evaluación se reducirá en un 40%"
+            rows={2}
+            style={{ width: '100%', fontFamily: 'var(--font-serif)', fontSize: 12, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule)', padding: '8px 12px', outline: 'none', resize: 'vertical' as const, lineHeight: 1.55, boxSizing: 'border-box' as const }}
+          />
+        </div>
+        <button
+          onClick={handleCommitVerdict}
+          disabled={!selectedVerdict.trim() || verdictState === 'committing'}
+          style={{
+            width: '100%',
+            fontFamily: 'var(--font-sans)',
+            fontSize: 12,
+            fontWeight: 500,
+            color: selectedVerdict.trim() ? 'var(--stoa-bg)' : 'var(--stoa-ink-3)',
+            backgroundColor: selectedVerdict.trim() ? 'var(--stoa-gold)' : 'var(--stoa-rule)',
+            border: 'none',
+            padding: '11px 16px',
+            cursor: selectedVerdict.trim() ? 'pointer' : 'default',
+            marginTop: 10,
+            letterSpacing: '0.02em',
+          }}
+        >
+          {verdictState === 'committing' ? 'Registrando…' : 'Registrar y archivar decisión'}
+        </button>
+      </div>
+    </>
+  )
+
   return (
     <motion.div
       variants={chamberEnter}
@@ -120,45 +285,79 @@ export default function DecisionChamber() {
       style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
     >
       {/* Header */}
-      <div style={{ padding: isMobile ? '18px 20px 14px' : '22px 40px 18px', borderBottom: '1px solid var(--stoa-rule-strong)' }}>
+      <div style={{ padding: isMobile ? '14px 20px' : '22px 40px 18px', borderBottom: '1px solid var(--stoa-rule-strong)' }}>
         <motion.div variants={settle}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8, flexWrap: 'wrap' as const, gap: 6 }}>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' as const }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-                Sala de Decisión
+          {isMobile ? (
+            <>
+              {/* Mobile: back link + status badge on one row */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                <Link to="/chamber" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 5 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--stoa-ink-3)' }}>← Decisiones</span>
+                </Link>
+                <span style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 9,
+                  color: isSettled ? 'var(--stoa-resolve)' : statusColor[decision.status],
+                  letterSpacing: '0.09em',
+                  textTransform: 'uppercase' as const,
+                  padding: '3px 8px',
+                  border: `1px solid ${isSettled ? 'var(--stoa-resolve)' : statusColor[decision.status]}`,
+                }}>
+                  {isSettled ? 'Resuelta' : statusLabel[decision.status]}
+                </span>
+              </div>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', display: 'block', marginBottom: 8, letterSpacing: '0.04em' }}>
+                {decision.id} · {days}d activa · {decision.deadline}
               </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>
-                {decision.id}
-              </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: isSettled ? 'var(--stoa-resolve)' : statusColor[decision.status], letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-                {isSettled ? 'Resuelta' : statusLabel[decision.status]}
-              </span>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-                {decision.tipoInnovacion}
-              </span>
-            </div>
-            <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                {days}d activa · Plazo {decision.deadline}
-              </span>
-            </div>
-          </div>
-
-          <div style={{ marginBottom: 4 }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>
-              {decision.titulo}
-            </span>
-          </div>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: isMobile ? 18 : 22, fontWeight: 400, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.25, maxWidth: 720, letterSpacing: '-0.01em' }}>
-            {decision.preguntaEstrategica}
-          </h1>
+              <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 400, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.3 }}>
+                {decision.preguntaEstrategica}
+              </h1>
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8, flexWrap: 'wrap' as const, gap: 6 }}>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', flexWrap: 'wrap' as const }}>
+                  <Link to="/chamber" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 4, marginRight: 4 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em' }}>←</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em' }}>Decisiones</span>
+                  </Link>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-rule-strong)' }}>·</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
+                    Sala de Decisión
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>
+                    {decision.id}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: isSettled ? 'var(--stoa-resolve)' : statusColor[decision.status], letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                    {isSettled ? 'Resuelta' : statusLabel[decision.status]}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
+                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
+                    {decision.tipoInnovacion}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                    {days}d activa · Plazo {decision.deadline}
+                  </span>
+                </div>
+              </div>
+              <div style={{ marginBottom: 4 }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>
+                  {decision.titulo}
+                </span>
+              </div>
+              <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 22, fontWeight: 400, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.25, maxWidth: 720, letterSpacing: '-0.01em' }}>
+                {decision.preguntaEstrategica}
+              </h1>
+            </>
+          )}
         </motion.div>
       </div>
 
-      {/* Lifecycle */}
+      {/* Lifecycle bar — desktop only */}
       {!isMobile && (
         <motion.div variants={settle} style={{ padding: '0 40px', height: 36, display: 'flex', alignItems: 'center', gap: 0, borderBottom: '1px solid var(--stoa-rule)', backgroundColor: 'var(--stoa-surface-1)', flexShrink: 0 }}>
           {['En evaluación', 'Deliberando', 'Resolución pendiente', 'Archivo'].map((stage, i) => {
@@ -194,21 +393,105 @@ export default function DecisionChamber() {
           style={{
             padding: isMobile ? '24px 20px' : '28px 32px 40px 40px',
             borderRight: isMobile ? 'none' : '1px solid var(--stoa-rule)',
-            overflowY: 'auto',
+            overflowY: 'auto' as const,
           }}
         >
-          {/* Impacto en Negocio */}
-          <motion.div variants={depositItem} style={{ marginBottom: 32 }}>
+          {/* Deliberation — first, because this is where the session happens */}
+          <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 12 }}>
+              <SectionHeader label="Deliberación" meta={`${decision.deliberationEntries.length} entrada${decision.deliberationEntries.length !== 1 ? 's' : ''}`} />
+              {isSettled && (
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
+                  Cerrada
+                </span>
+              )}
+            </div>
+
+            {/* Hypothesis as deliberation context */}
+            {decision.businessImpact.hypothesis && (
+              <div style={{ marginBottom: 16, padding: '10px 14px', borderLeft: '2px solid var(--stoa-gold)', backgroundColor: 'rgba(196, 149, 42, 0.03)' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>
+                  Hipótesis que deliberamos
+                </span>
+                <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
+                  {decision.businessImpact.hypothesis}
+                </p>
+              </div>
+            )}
+
+            {/* Entries */}
+            <div>
+              {decision.deliberationEntries.length === 0 && !isSettled && (
+                <div style={{ padding: '16px 0', marginBottom: 8 }}>
+                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.6 }}>
+                    Registra las posiciones, argumentos y aportaciones del equipo. Cada entrada queda en el acta permanente de la decisión.
+                  </p>
+                </div>
+              )}
+              {decision.deliberationEntries.map((entry, i) => (
+                <div key={entry.id} style={{ padding: '14px 0', borderBottom: i < decision.deliberationEntries.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginBottom: 6 }}>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 500, color: 'var(--stoa-ink)' }}>{entry.participant}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{entry.timestamp}</span>
+                  </div>
+                  <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.65 }}>{entry.text}</p>
+                </div>
+              ))}
+
+              {/* Entry form */}
+              {!isSettled && (
+                <div style={{ marginTop: decision.deliberationEntries.length > 0 ? 20 : 0, paddingTop: decision.deliberationEntries.length > 0 ? 16 : 0, borderTop: decision.deliberationEntries.length > 0 ? '1px solid var(--stoa-rule)' : 'none' }}>
+                  <div style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                    <input
+                      value={deliberationParticipant}
+                      onChange={(e) => setDeliberationParticipant(e.target.value)}
+                      placeholder="Participante"
+                      style={{ flex: 1, fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule)', padding: '8px 12px', outline: 'none', boxSizing: 'border-box' as const }}
+                    />
+                  </div>
+                  <textarea
+                    value={deliberationText}
+                    onChange={(e) => setDeliberationText(e.target.value)}
+                    placeholder="Posición, argumento o aportación del participante…"
+                    rows={3}
+                    style={{ width: '100%', fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule)', padding: '9px 12px', outline: 'none', resize: 'vertical' as const, lineHeight: 1.55, boxSizing: 'border-box' as const }}
+                  />
+                  <button
+                    onClick={handleAddNote}
+                    disabled={!deliberationText.trim()}
+                    style={{ marginTop: 8, fontFamily: 'var(--font-mono)', fontSize: 10, color: deliberationText.trim() ? 'var(--stoa-ink-2)' : 'var(--stoa-ink-3)', background: 'none', border: '1px solid ' + (deliberationText.trim() ? 'var(--stoa-rule-strong)' : 'var(--stoa-rule)'), padding: '6px 14px', cursor: deliberationText.trim() ? 'pointer' : 'default', letterSpacing: '0.04em' }}
+                  >
+                    + Registrar entrada
+                  </button>
+                </div>
+              )}
+            </div>
+          </motion.div>
+
+          {/* Mobile: conditions + close appear here, right after deliberation */}
+          {isMobile && (
+            <>
+              <motion.div variants={depositItem} style={{ marginBottom: 28, paddingTop: 24, borderTop: '1px solid var(--stoa-rule)' }}>
+                {conditionsPanel}
+              </motion.div>
+              <motion.div variants={depositItem} style={{ marginBottom: 28, paddingTop: 24, borderTop: '1px solid var(--stoa-rule)' }}>
+                {resolutionPanel}
+              </motion.div>
+            </>
+          )}
+
+          {/* Marco de Impacto */}
+          <motion.div variants={depositItem} style={{ marginBottom: 32, paddingTop: 24, borderTop: '1px solid var(--stoa-rule)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
-              <SectionHeader label="Impacto en Negocio" />
+              <SectionHeader label="Marco de Impacto" />
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: decision.businessImpact.evidenceStatus === 'Sin datos' ? 'var(--stoa-ink-3)' : 'var(--stoa-gold)', letterSpacing: '0.06em' }}>
                 Evidencia: {decision.businessImpact.evidenceStatus}
               </span>
             </div>
 
-            <PilotHint text="Esta sección vincula la iniciativa a la cuenta de explotación. Es la parte más importante de la decisión." />
+            <PilotHint text="Vincula la iniciativa a la cuenta de explotación. Hipótesis, indicadores y riesgo de no actuar." />
 
-            {/* Hipótesis */}
+            {/* Hipótesis editable */}
             <div style={{ marginBottom: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 6 }}>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
@@ -326,202 +609,71 @@ export default function DecisionChamber() {
             )}
           </motion.div>
 
-          {/* Deliberation */}
-          <motion.div variants={depositItem} style={{ marginBottom: 32 }}>
-            <SectionHeader label="Deliberación" meta={`${decision.deliberationEntries.length} entradas`} />
-            <div style={{ marginTop: 14 }}>
-              {decision.deliberationEntries.map((entry, i) => (
-                <div key={entry.id} style={{ padding: '14px 0', borderBottom: i < decision.deliberationEntries.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginBottom: 6 }}>
-                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 500, color: 'var(--stoa-ink)' }}>{entry.participant}</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{entry.timestamp}</span>
+          {/* Mobile: metadata at the very bottom */}
+          {isMobile && (
+            <motion.div variants={depositItem} style={{ paddingTop: 24, borderTop: '1px solid var(--stoa-rule)' }}>
+              <SectionHeader label="Metadatos" />
+              <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
+                {[
+                  { label: 'Referencia', value: decision.id },
+                  { label: 'Responsable', value: decision.owner || 'Sin asignar' },
+                  { label: 'Tipo', value: decision.tipoInnovacion },
+                  { label: 'Peso', value: decision.weight },
+                  { label: 'Plazo', value: decision.deadline || 'Sin definir' },
+                  { label: 'Horizonte', value: decision.businessImpact.reviewHorizon },
+                ].map(({ label, value }) => (
+                  <div key={label} style={{ padding: '8px 0', borderBottom: '1px solid var(--stoa-rule)' }}>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)', display: 'block', marginBottom: 2 }}>{label}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>{value}</span>
                   </div>
-                  <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.65 }}>{entry.text}</p>
-                </div>
-              ))}
-              {decision.deliberationEntries.length === 0 && (
-                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: '0 0 16px', fontStyle: 'italic' }}>
-                  Sin entradas de deliberación. Registra el razonamiento antes de cerrar la decisión.
-                </p>
-              )}
-              {!isSettled && (
-                <div style={{ marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--stoa-rule)' }}>
-                  <input
-                    value={deliberationParticipant}
-                    onChange={(e) => setDeliberationParticipant(e.target.value)}
-                    placeholder="Nombre del participante"
-                    style={{ width: '100%', fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule)', padding: '8px 12px', outline: 'none', boxSizing: 'border-box' as const, marginBottom: 8 }}
-                  />
-                  <textarea
-                    value={deliberationText}
-                    onChange={(e) => setDeliberationText(e.target.value)}
-                    placeholder="Registra una posición, argumento o aportación…"
-                    rows={3}
-                    style={{ width: '100%', fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule)', padding: '9px 12px', outline: 'none', resize: 'vertical' as const, lineHeight: 1.55, boxSizing: 'border-box' as const }}
-                  />
-                  <button
-                    onClick={handleAddNote}
-                    disabled={!deliberationText.trim()}
-                    style={{ marginTop: 8, fontFamily: 'var(--font-mono)', fontSize: 10, color: deliberationText.trim() ? 'var(--stoa-ink-2)' : 'var(--stoa-ink-3)', background: 'none', border: '1px solid ' + (deliberationText.trim() ? 'var(--stoa-rule-strong)' : 'var(--stoa-rule)'), padding: '5px 12px', cursor: deliberationText.trim() ? 'pointer' : 'default', letterSpacing: '0.04em' }}
-                  >
-                    Registrar entrada
-                  </button>
-                </div>
-              )}
-            </div>
-          </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          )}
         </motion.div>
 
-        {/* Right: sidebar */}
-        <motion.div
-          variants={deposit}
-          initial="hidden"
-          animate="visible"
-          style={{
-            padding: isMobile ? '24px 20px' : '28px 40px 40px 24px',
-            overflowY: 'auto',
-          }}
-        >
-          {/* Metadata */}
-          <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
-            <SectionHeader label="Metadatos" />
-            <div style={{ marginTop: 10 }}>
-              {[
-                { label: 'Referencia', value: decision.id },
-                { label: 'Responsable', value: decision.owner || 'Sin asignar' },
-                { label: 'Tipo', value: decision.tipoInnovacion },
-                { label: 'Peso', value: decision.weight },
-                { label: 'Plazo', value: decision.deadline || 'Sin definir' },
-                { label: 'Horizonte revisión', value: decision.businessImpact.reviewHorizon },
-              ].map(({ label, value }, i, arr) => (
-                <div key={label} style={{ padding: '8px 0', borderBottom: i < arr.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)', display: 'block', marginBottom: 2 }}>{label}</span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>{value}</span>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Resolution Conditions */}
-          <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
-            <SectionHeader label="Condiciones de Resolución" meta={`${conditionsMet}/${decision.resolutionConditions.length}`} />
-            <div style={{ marginTop: 10 }}>
-              {decision.resolutionConditions.map((cond) => (
-                <div key={cond.id} style={{ display: 'flex', gap: 10, alignItems: 'flex-start', padding: '9px 0', borderBottom: '1px solid var(--stoa-rule)' }}>
-                  <button
-                    onClick={() => !isSettled && markConditionSatisfied(decision.id, cond.id, !cond.satisfied)}
-                    style={{ width: 10, height: 10, borderRadius: '50%', backgroundColor: cond.satisfied ? 'var(--stoa-resolve)' : 'transparent', border: `1px solid ${cond.satisfied ? 'var(--stoa-resolve)' : 'var(--stoa-ink-3)'}`, flexShrink: 0, marginTop: 3, cursor: isSettled ? 'default' : 'pointer', padding: 0 }}
-                  />
-                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: cond.satisfied ? 'var(--stoa-ink-3)' : 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.4, textDecoration: cond.satisfied ? 'line-through' : 'none' }}>
-                    {cond.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          {/* Resolution */}
-          <motion.div variants={depositItem}>
-            {isSettled ? (
-              <div>
-                <SectionHeader label="Resolución" />
-                <div style={{ marginTop: 10, padding: '12px 14px', borderLeft: '2px solid var(--stoa-resolve)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 5 }}>
-                    Resolución registrada
-                  </span>
-                  <p style={{ fontFamily: 'var(--font-serif)', fontSize: 14, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.55 }}>
-                    {decision.selectedVerdict || selectedVerdict}
-                  </p>
-                </div>
-                {(decision.prediccion || prediccionText) && (
-                  <div style={{ marginTop: 8, padding: '10px 14px', borderLeft: '2px solid var(--stoa-ink-3)' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>
-                      Predicción
-                    </span>
-                    <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.55 }}>
-                      {decision.prediccion || prediccionText}
-                    </p>
+        {/* Right: sidebar — desktop only */}
+        {!isMobile && (
+          <motion.div
+            variants={deposit}
+            initial="hidden"
+            animate="visible"
+            style={{
+              padding: '28px 40px 40px 24px',
+              overflowY: 'auto' as const,
+            }}
+          >
+            {/* Metadata */}
+            <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
+              <SectionHeader label="Metadatos" />
+              <div style={{ marginTop: 10 }}>
+                {[
+                  { label: 'Referencia', value: decision.id },
+                  { label: 'Responsable', value: decision.owner || 'Sin asignar' },
+                  { label: 'Tipo', value: decision.tipoInnovacion },
+                  { label: 'Peso', value: decision.weight },
+                  { label: 'Plazo', value: decision.deadline || 'Sin definir' },
+                  { label: 'Horizonte revisión', value: decision.businessImpact.reviewHorizon },
+                ].map(({ label, value }, i, arr) => (
+                  <div key={label} style={{ padding: '8px 0', borderBottom: i < arr.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)', display: 'block', marginBottom: 2 }}>{label}</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>{value}</span>
                   </div>
-                )}
-                <div style={{ marginTop: 10, padding: '10px 14px', backgroundColor: 'var(--stoa-surface-1)' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', display: 'block', marginBottom: 4 }}>
-                    Esta decisión ha entrado en el Archivo Estratégico.
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                    Revisión de evidencia: {decision.businessImpact.reviewHorizon}
-                  </span>
-                </div>
+                ))}
               </div>
-            ) : (
-              <div>
-                <SectionHeader label="Resolución" />
-                <PilotHint text="Escribe la resolución o usa una opción como punto de partida. La predicción queda vinculada al archivo." />
-                <div style={{ marginTop: 10 }}>
-                  {decision.verdictOptions.map((opt) => (
-                    <button
-                      key={opt}
-                      onClick={() => setSelectedVerdict(opt)}
-                      style={{
-                        display: 'block',
-                        width: '100%',
-                        textAlign: 'left' as const,
-                        fontFamily: 'var(--font-sans)',
-                        fontSize: 11,
-                        color: selectedVerdict === opt ? 'var(--stoa-ink)' : 'var(--stoa-ink-3)',
-                        backgroundColor: selectedVerdict === opt ? 'rgba(196, 149, 42, 0.08)' : 'transparent',
-                        border: '1px solid ' + (selectedVerdict === opt ? 'var(--stoa-gold)' : 'var(--stoa-rule)'),
-                        padding: '7px 10px',
-                        cursor: 'pointer',
-                        marginBottom: 4,
-                        lineHeight: 1.4,
-                      }}
-                    >
-                      {opt}
-                    </button>
-                  ))}
-                  <textarea
-                    value={selectedVerdict}
-                    onChange={(e) => setSelectedVerdict(e.target.value)}
-                    placeholder="Escribe la resolución completa…"
-                    rows={3}
-                    style={{ width: '100%', fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule-strong)', padding: '9px 12px', outline: 'none', resize: 'vertical' as const, lineHeight: 1.55, boxSizing: 'border-box' as const, marginTop: 8 }}
-                  />
-                  <div style={{ marginTop: 12 }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 5 }}>
-                      Predicción
-                    </span>
-                    <textarea
-                      value={prediccionText}
-                      onChange={(e) => setPrediccionText(e.target.value)}
-                      placeholder="¿Qué resultado esperas y en qué plazo?"
-                      rows={2}
-                      style={{ width: '100%', fontFamily: 'var(--font-serif)', fontSize: 12, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule)', padding: '8px 12px', outline: 'none', resize: 'vertical' as const, lineHeight: 1.55, boxSizing: 'border-box' as const }}
-                    />
-                  </div>
-                  <button
-                    onClick={handleCommitVerdict}
-                    disabled={!selectedVerdict.trim() || verdictState === 'committing'}
-                    style={{
-                      width: '100%',
-                      fontFamily: 'var(--font-sans)',
-                      fontSize: 12,
-                      fontWeight: 500,
-                      color: selectedVerdict.trim() ? 'var(--stoa-bg)' : 'var(--stoa-ink-3)',
-                      backgroundColor: selectedVerdict.trim() ? 'var(--stoa-gold)' : 'var(--stoa-rule)',
-                      border: 'none',
-                      padding: '11px 16px',
-                      cursor: selectedVerdict.trim() ? 'pointer' : 'default',
-                      marginTop: 10,
-                      letterSpacing: '0.02em',
-                    }}
-                  >
-                    {verdictState === 'committing' ? 'Registrando…' : 'Registrar resolución'}
-                  </button>
-                </div>
-              </div>
-            )}
+            </motion.div>
+
+            {/* Conditions */}
+            <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
+              {conditionsPanel}
+            </motion.div>
+
+            {/* Resolution */}
+            <motion.div variants={depositItem}>
+              {resolutionPanel}
+            </motion.div>
           </motion.div>
-        </motion.div>
+        )}
       </div>
     </motion.div>
   )

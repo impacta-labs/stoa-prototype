@@ -3,63 +3,56 @@ import { Link } from 'react-router-dom'
 import { chamberEnter, settle, deposit, depositItem } from '../lib/motion'
 import SectionHeader from '../components/primitives/SectionHeader'
 import { useIsMobile } from '../hooks/useViewport'
-import {
-  organization,
-  weeklyStanding,
-  inDeliberation,
-  ripeningPredictions,
-  recentlySettled,
-  memoryBand,
-  systemStatus,
-  councilHistory,
-} from '../data/fixtures'
 import { useDecisionsStore, daysActive } from '../store/decisions'
+import { useOrgStore } from '../store/org'
 
 const statusColor: Record<string, string> = {
-  deliberating:  'var(--stoa-gold)',
-  open:          'var(--stoa-ink-3)',
-  overdue:       'var(--stoa-amber)',
-  evaluacion:    'var(--stoa-ink-3)',
-  deliberando:   'var(--stoa-gold)',
+  evaluacion:  'var(--stoa-ink-3)',
+  deliberando: 'var(--stoa-gold)',
 }
 
 const statusLabel: Record<string, string> = {
-  deliberating:  'En deliberación',
-  open:          'Abierta',
-  overdue:       'Vencida',
-  evaluacion:    'En evaluación',
-  deliberando:   'En deliberación',
-}
-
-const hypothesisColor: Record<string, string> = {
-  'confirmada':              'var(--stoa-resolve)',
-  'parcialmente confirmada': 'var(--stoa-gold)',
-  'refutada':                'var(--stoa-amber)',
-  'inconclusa':              'var(--stoa-ink-3)',
+  evaluacion:  'En evaluación',
+  deliberando: 'En deliberación',
 }
 
 const tipoLabel: Record<string, string> = {
-  'tecnología / IA':    'Tecnología / IA',
-  'proceso interno':    'Proceso',
-  'eficiencia operativa': 'Eficiencia',
-  'expansión':          'Expansión',
-  'modelo de negocio':  'Modelo',
-  'experiencia de cliente': 'Experiencia',
-  'partnership':        'Partnership',
-  'cultura organizativa': 'Cultura',
+  'tecnología / IA':       'Tecnología / IA',
+  'proceso interno':       'Proceso',
+  'eficiencia operativa':  'Eficiencia',
+  'expansión':             'Expansión',
+  'modelo de negocio':     'Modelo',
+  'experiencia de cliente':'Experiencia',
+  'partnership':           'Partnership',
+  'cultura organizativa':  'Cultura',
 }
 
 export default function Atrium() {
   const isMobile = useIsMobile()
   const { decisions, openCreateModal } = useDecisionsStore()
+  const { name: orgName, sector, isConfigured } = useOrgStore()
 
-  const userActive = decisions.filter((d) => d.status === 'evaluacion' || d.status === 'deliberando')
+  const userActive   = decisions.filter((d) => d.status === 'evaluacion' || d.status === 'deliberando')
   const userResolved = decisions.filter((d) => d.status === 'resuelta')
 
-  // Decisions missing critical fields
   const sinAterrizar = userActive.filter(
     (d) => !d.businessImpact.leadingIndicators.length || !d.businessImpact.hypothesis || !d.owner
   )
+
+  const approaching = [...userActive].sort(
+    (a, b) => new Date(a.opened).getTime() - new Date(b.opened).getTime()
+  ).slice(0, 3)
+
+  const participants = [...new Set(decisions.map((d) => d.owner).filter(Boolean))]
+
+  const today = new Date()
+  const year  = today.getFullYear()
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  const day   = String(today.getDate()).padStart(2, '0')
+  const period     = `${day}/${month}/${year}`
+  const sessionRef = `S-${String(year).slice(2)}${month}${day}`
+
+  const displayName = isConfigured ? orgName : 'Tu organización'
 
   return (
     <motion.div
@@ -69,12 +62,7 @@ export default function Atrium() {
       style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
     >
       {/* Organization Header */}
-      <div
-        style={{
-          padding: isMobile ? '24px 20px 20px' : '32px 40px 24px',
-          borderBottom: '1px solid var(--stoa-rule)',
-        }}
-      >
+      <div style={{ padding: isMobile ? '24px 20px 20px' : '32px 40px 24px', borderBottom: '1px solid var(--stoa-rule)' }}>
         <motion.div variants={settle}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' as const, gap: 10 }}>
             <div>
@@ -84,36 +72,23 @@ export default function Atrium() {
                 </span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
                 <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>
-                  {organization.period}
+                  {period}
                 </span>
-                {systemStatus.overdueDecisions > 0 && (
-                  <>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-                      {systemStatus.overdueDecisions} vencida
-                    </span>
-                  </>
-                )}
               </div>
-              <h1
-                style={{
-                  fontFamily: 'var(--font-serif)',
-                  fontSize: isMobile ? 22 : 28,
-                  fontWeight: 400,
-                  color: 'var(--stoa-ink)',
-                  margin: '0 0 5px',
-                  letterSpacing: '-0.01em',
-                  lineHeight: 1.15,
-                }}
-              >
-                {organization.name}
+              <h1 style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: isMobile ? 22 : 28,
+                fontWeight: 400,
+                color: 'var(--stoa-ink)',
+                margin: '0 0 5px',
+                letterSpacing: '-0.01em',
+                lineHeight: 1.15,
+              }}>
+                {displayName}
               </h1>
-              <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 300, color: 'var(--stoa-ink-3)', margin: '0 0 3px' }}>
-                {organization.chapter}
-              </p>
-              {!isMobile && (
-                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: 0, fontWeight: 300 }}>
-                  {organization.focus}
+              {sector && (
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 300, color: 'var(--stoa-ink-3)', margin: '0 0 3px' }}>
+                  {sector}
                 </p>
               )}
             </div>
@@ -121,13 +96,10 @@ export default function Atrium() {
               {!isMobile && (
                 <div style={{ textAlign: 'right' as const }}>
                   <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.05em' }}>
-                    {organization.location} · Fund. {organization.founded}
-                  </p>
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.05em' }}>
-                    Último consejo {weeklyStanding.lastConvened}
+                    {decisions.length} decisión{decisions.length !== 1 ? 'es' : ''} en registro
                   </p>
                   <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.05em' }}>
-                    Sincronizado {systemStatus.lastSync}
+                    {sessionRef}
                   </p>
                 </div>
               )}
@@ -152,7 +124,7 @@ export default function Atrium() {
         </motion.div>
       </div>
 
-      {/* Innovación sin aterrizar — only if there are issues */}
+      {/* Requieren atención */}
       {sinAterrizar.length > 0 && (
         <motion.div
           variants={settle}
@@ -167,7 +139,7 @@ export default function Atrium() {
           }}
         >
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.1em', textTransform: 'uppercase' as const, flexShrink: 0 }}>
-            Innovación sin aterrizar
+            Requieren atención
           </span>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' as const }}>
             {sinAterrizar.map((d) => (
@@ -184,12 +156,10 @@ export default function Atrium() {
         </motion.div>
       )}
 
-      {/* Weekly Standing + In Deliberation */}
-      <div
-        className="stoa-col-left-280"
-        style={{ borderBottom: '1px solid var(--stoa-rule)' }}
-      >
-        {/* Standing */}
+      {/* Estado Actual + En Deliberación */}
+      <div className="stoa-col-left-280" style={{ borderBottom: '1px solid var(--stoa-rule)' }}>
+
+        {/* Estado Actual */}
         <motion.div
           variants={settle}
           style={{
@@ -198,27 +168,41 @@ export default function Atrium() {
             borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
           }}
         >
-          <SectionHeader label="Estado Actual" meta={`Período hasta ${weeklyStanding.nextCouncil}`} />
+          <SectionHeader label="Estado Actual" meta={period} />
           <div style={{ marginTop: 14 }}>
             {[
-              { label: 'Decisiones Activas',       value: weeklyStanding.activeDecisions + userActive.length, note: `+${userActive.length} iniciativas en piloto` },
-              { label: 'Carga Deliberativa',        value: weeklyStanding.deliberationLoad,     note: weeklyStanding.deliberationLoadTrend },
-              { label: 'Resueltas este Trimestre',  value: weeklyStanding.settledThisQuarter + userResolved.length,   note: userResolved.length > 0 ? `+${userResolved.length} del piloto` : weeklyStanding.settledThisQuarterChange },
-              { label: 'Entradas de Memoria',       value: weeklyStanding.memoryEntries,        note: weeklyStanding.memoryEntriesChange },
-              { label: 'Participantes',             value: weeklyStanding.activeParticipants,   note: null },
+              {
+                label: 'Decisiones activas',
+                value: userActive.length,
+                note: userActive.length === 0 ? 'Sin decisiones abiertas' : `${userActive.length} en seguimiento`,
+              },
+              {
+                label: 'Resueltas',
+                value: userResolved.length,
+                note: userResolved.length > 0 ? 'Ver en Archivo' : null,
+              },
+              {
+                label: 'Participantes',
+                value: participants.length,
+                note: participants.length > 0
+                  ? participants.slice(0, 2).join(', ') + (participants.length > 2 ? ` +${participants.length - 2}` : '')
+                  : null,
+              },
+              {
+                label: 'Total en registro',
+                value: decisions.length,
+                note: null,
+              },
             ].map(({ label, value, note }, i, arr) => (
               <div
                 key={label}
-                style={{
-                  padding: '9px 0',
-                  borderBottom: i < arr.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
-                }}
+                style={{ padding: '9px 0', borderBottom: i < arr.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}
               >
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                   <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)' }}>
                     {label}
                   </span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: label === 'Carga Deliberativa' ? 'var(--stoa-amber)' : 'var(--stoa-ink)' }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--stoa-ink)' }}>
                     {value}
                   </span>
                 </div>
@@ -230,35 +214,23 @@ export default function Atrium() {
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 18 }}>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-              Próximo Consejo
-            </p>
-            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-gold)', margin: '0 0 2px' }}>
-              {weeklyStanding.nextCouncil}
-            </p>
-            <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '0 0 12px' }}>
-              {systemStatus.pendingActions} acciones pendientes · {systemStatus.sessionRef} en sesión
-            </p>
-            <div style={{ borderTop: '1px solid var(--stoa-rule)', paddingTop: 10 }}>
-              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 5px', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>
-                Sesiones recientes
+
+          <div style={{ marginTop: 18, borderTop: '1px solid var(--stoa-rule)', paddingTop: 12 }}>
+            <Link to="/council" style={{ textDecoration: 'none' }}>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 4px', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
+                Sesión de Consejo
               </p>
-              {councilHistory.slice(0, 3).map((h) => (
-                <div key={h.ref} style={{ display: 'flex', justifyContent: 'space-between', padding: '3px 0' }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                    {h.ref}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                    {h.date}
-                  </span>
-                </div>
-              ))}
-            </div>
+              <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-gold)', margin: '0 0 2px' }}>
+                Abrir sala →
+              </p>
+              <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0 }}>
+                {userActive.length} decisión{userActive.length !== 1 ? 'es' : ''} para revisar
+              </p>
+            </Link>
           </div>
         </motion.div>
 
-        {/* In Deliberation */}
+        {/* En Deliberación */}
         <motion.div
           variants={deposit}
           initial="hidden"
@@ -266,28 +238,49 @@ export default function Atrium() {
           style={{ padding: isMobile ? '20px 20px' : '22px 40px 22px 24px' }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>
-            <SectionHeader label="En Deliberación" meta={`${inDeliberation.length + userActive.length} activas`} />
+            <SectionHeader label="En Deliberación" meta={`${userActive.length} activa${userActive.length !== 1 ? 's' : ''}`} />
           </div>
-          <div>
-            {/* User decisions first */}
-            {userActive.map((d) => (
+
+          {userActive.length === 0 ? (
+            <motion.div variants={depositItem}>
+              <div style={{ padding: '24px 0', textAlign: 'center' as const }}>
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-3)', margin: '0 0 6px' }}>
+                  Sin decisiones activas
+                </p>
+                <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: '0 0 14px', letterSpacing: '0.04em' }}>
+                  Las iniciativas creadas aparecerán aquí
+                </p>
+                <button
+                  onClick={openCreateModal}
+                  style={{
+                    fontFamily: 'var(--font-sans)',
+                    fontSize: 11,
+                    color: 'var(--stoa-gold)',
+                    background: 'none',
+                    border: '1px solid var(--stoa-gold)',
+                    padding: '6px 14px',
+                    cursor: 'pointer',
+                    letterSpacing: '0.03em',
+                  }}
+                >
+                  + Nueva iniciativa
+                </button>
+              </div>
+            </motion.div>
+          ) : (
+            userActive.map((d, i) => (
               <motion.div key={d.id} variants={depositItem}>
                 <Link to={`/chamber/${d.id}`} style={{ textDecoration: 'none' }}>
-                  <div
-                    style={{
-                      padding: '12px 0',
-                      borderBottom: '1px solid var(--stoa-rule)',
-                    }}
-                  >
+                  <div style={{ padding: '12px 0', borderBottom: i < userActive.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 5 }}>
-                      <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: statusColor[d.status], marginTop: 6, flexShrink: 0 }} />
+                      <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: statusColor[d.status] || 'var(--stoa-ink-3)', marginTop: 6, flexShrink: 0 }} />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
                           <span style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink)', lineHeight: 1.4 }}>
                             {d.preguntaEstrategica}
                           </span>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: statusColor[d.status], letterSpacing: '0.08em', textTransform: 'uppercase' as const, flexShrink: 0, paddingTop: 2 }}>
-                            {statusLabel[d.status]}
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: statusColor[d.status] || 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, flexShrink: 0, paddingTop: 2 }}>
+                            {statusLabel[d.status] || d.status}
                           </span>
                         </div>
                       </div>
@@ -302,56 +295,14 @@ export default function Atrium() {
                   </div>
                 </Link>
               </motion.div>
-            ))}
-
-            {/* Fixture decisions */}
-            {inDeliberation.map((d, i) => (
-              <motion.div key={d.id} variants={depositItem}>
-                <div
-                  style={{
-                    padding: '12px 0',
-                    borderBottom: i < inDeliberation.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
-                  }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 5 }}>
-                    <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: statusColor[d.status], marginTop: 6, flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8 }}>
-                        <span style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: d.overdue ? 'var(--stoa-ink-2)' : 'var(--stoa-ink)', lineHeight: 1.4 }}>
-                          {d.title}
-                        </span>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: statusColor[d.status], letterSpacing: '0.08em', textTransform: 'uppercase' as const, flexShrink: 0, paddingTop: 2 }}>
-                          {statusLabel[d.status]}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ paddingLeft: 14, display: 'flex', flexWrap: 'wrap' as const, gap: '2px 14px' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.03em' }}>{d.id}</span>
-                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>{d.owner}</span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: d.overdue ? 'var(--stoa-amber)' : 'var(--stoa-ink-3)' }}>
-                      {d.overdue ? `Venció ${d.deadline}` : `Plazo ${d.deadline}`}
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{d.daysActive}d activa</span>
-                    {d.deliberationEntries > 0 ? (
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{d.deliberationEntries} entradas</span>
-                    ) : (
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', fontStyle: 'italic' }}>sin entradas</span>
-                    )}
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: d.overdue ? 'var(--stoa-amber)' : 'var(--stoa-ink-3)' }}>Última: {d.lastActivity}</span>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+            ))
+          )}
         </motion.div>
       </div>
 
-      {/* Ripening + Recently Settled */}
-      <div
-        className="stoa-col-2"
-        style={{ borderBottom: '1px solid var(--stoa-rule)', flex: 1 }}
-      >
+      {/* En Maduración + Recientemente Resueltas */}
+      <div className="stoa-col-2" style={{ borderBottom: '1px solid var(--stoa-rule)', flex: 1 }}>
+
         {/* En Maduración */}
         <motion.div
           variants={deposit}
@@ -363,29 +314,41 @@ export default function Atrium() {
             borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
           }}
         >
-          <SectionHeader label="En Maduración" meta={`${ripeningPredictions.length} próximas al umbral`} />
+          <SectionHeader
+            label="En Maduración"
+            meta={approaching.length > 0 ? `${approaching.length} con prioridad` : 'Sin señales activas'}
+          />
           <div style={{ marginTop: 14 }}>
-            {ripeningPredictions.map((r, i) => (
-              <motion.div
-                key={r.id}
-                variants={depositItem}
-                style={{
-                  padding: '13px 0',
-                  borderBottom: i < ripeningPredictions.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
-                }}
-              >
-                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-amber)', marginTop: 6, flexShrink: 0 }} />
-                  <div>
-                    <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{r.id}</span>
-                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.3 }}>{r.signal}</p>
-                    </div>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.4 }}>{r.trigger}</p>
-                  </div>
-                </div>
+            {approaching.length === 0 ? (
+              <motion.div variants={depositItem}>
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: '8px 0', lineHeight: 1.55 }}>
+                  Las decisiones activas con mayor antigüedad aparecerán aquí como señales de urgencia.
+                </p>
               </motion.div>
-            ))}
+            ) : (
+              approaching.map((d, i) => (
+                <motion.div
+                  key={d.id}
+                  variants={depositItem}
+                  style={{ padding: '13px 0', borderBottom: i < approaching.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}
+                >
+                  <Link to={`/chamber/${d.id}`} style={{ textDecoration: 'none' }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                      <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-amber)', marginTop: 6, flexShrink: 0 }} />
+                      <div>
+                        <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 3 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{d.id}</span>
+                          <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.3 }}>{d.titulo}</p>
+                        </div>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.4 }}>
+                          Plazo {d.deadline} · {daysActive(d.opened)}d activa
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))
+            )}
           </div>
         </motion.div>
 
@@ -396,72 +359,53 @@ export default function Atrium() {
           animate="visible"
           style={{ padding: isMobile ? '20px 20px' : '22px 40px 22px 24px' }}
         >
-          <SectionHeader label="Recientemente Resueltas" meta={`${recentlySettled.length + userResolved.length} decisiones`} />
+          <SectionHeader
+            label="Recientemente Resueltas"
+            meta={`${userResolved.length} decisión${userResolved.length !== 1 ? 'es' : ''}`}
+          />
           <div style={{ marginTop: 14 }}>
-            {/* User resolved decisions */}
-            {userResolved.map((d) => (
-              <motion.div key={d.id} variants={depositItem} style={{ padding: '11px 0', borderBottom: '1px solid var(--stoa-rule)' }}>
-                <Link to={`/chamber/${d.id}`} style={{ textDecoration: 'none' }}>
-                  <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                    <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)', marginTop: 5, flexShrink: 0 }} />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
-                        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.35 }}>
-                          {d.preguntaEstrategica}
+            {userResolved.length === 0 ? (
+              <motion.div variants={depositItem}>
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: '8px 0', lineHeight: 1.55 }}>
+                  Las decisiones cerradas quedan registradas aquí como memoria institucional.
+                </p>
+              </motion.div>
+            ) : (
+              userResolved.map((d, i) => (
+                <motion.div
+                  key={d.id}
+                  variants={depositItem}
+                  style={{ padding: '11px 0', borderBottom: i < userResolved.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}
+                >
+                  <Link to={`/chamber/${d.id}`} style={{ textDecoration: 'none' }}>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+                      <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)', marginTop: 5, flexShrink: 0 }} />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
+                          <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.35 }}>
+                            {d.preguntaEstrategica}
+                          </p>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.03em', flexShrink: 0 }}>
+                            {d.id}
+                          </span>
+                        </div>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: 0 }}>
+                          {d.selectedVerdict}
                         </p>
-                        <div style={{ display: 'flex', gap: 6, alignItems: 'baseline', flexShrink: 0 }}>
-                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.03em' }}>{d.id}</span>
+                        <div style={{ display: 'flex', gap: 10, marginTop: 3, alignItems: 'baseline' }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>
+                            Resuelta
+                          </span>
+                          {d.owner && (
+                            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{d.owner}</span>
+                          )}
                         </div>
                       </div>
-                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: 0 }}>
-                        {d.selectedVerdict}
-                      </p>
-                      <div style={{ display: 'flex', gap: 10, marginTop: 3 }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>
-                          Resuelta · piloto
-                        </span>
-                      </div>
                     </div>
-                  </div>
-                </Link>
-              </motion.div>
-            ))}
-
-            {/* Fixture resolved decisions */}
-            {recentlySettled.map((d, i) => (
-              <motion.div
-                key={d.id}
-                variants={depositItem}
-                style={{
-                  padding: '11px 0',
-                  borderBottom: i < recentlySettled.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
-                }}
-              >
-                <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-                  <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-resolve)', marginTop: 5, flexShrink: 0 }} />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, marginBottom: 3 }}>
-                      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.35 }}>
-                        {d.title}
-                      </p>
-                      <div style={{ display: 'flex', gap: 6, alignItems: 'baseline', flexShrink: 0 }}>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{d.id}</span>
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{d.settled}</span>
-                      </div>
-                    </div>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.4 }}>{d.verdict}</p>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginTop: 3 }}>
-                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.03em' }}>Hilo: {d.thread}</p>
-                      {d.hypothesisStatus && (
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: hypothesisColor[d.hypothesisStatus] || 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>
-                          Hipótesis {d.hypothesisStatus}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
+                  </Link>
+                </motion.div>
+              ))
+            )}
           </div>
         </motion.div>
       </div>
@@ -485,33 +429,25 @@ export default function Atrium() {
         </span>
         <div style={{ width: 1, height: 10, backgroundColor: 'var(--stoa-rule-strong)', flexShrink: 0 }} />
         <div style={{ display: 'flex', gap: 24, alignItems: 'center', overflow: 'hidden' }}>
-          {userResolved.map((d) => (
-            <span key={d.id} style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-gold)', whiteSpace: 'nowrap' as const }}>
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, marginRight: 5, color: 'var(--stoa-gold)', letterSpacing: '0.03em' }}>{d.id}</span>
-              {d.titulo}
+          {decisions.length === 0 ? (
+            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', fontStyle: 'italic' }}>
+              Las decisiones registradas quedan en memoria permanente
             </span>
-          ))}
-          {memoryBand.map((entry, i) => (
-            <span
-              key={entry.id}
-              style={{
-                fontFamily: 'var(--font-sans)',
-                fontSize: 11,
-                color: i === 0 && userResolved.length === 0 ? 'var(--stoa-ink-2)' : 'var(--stoa-ink-3)',
-                whiteSpace: 'nowrap' as const,
-              }}
-            >
-              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, marginRight: 5, color: 'var(--stoa-ink-3)', letterSpacing: '0.03em' }}>
-                {entry.id}
-              </span>
-              {entry.title}
-              {!isMobile && (
-                <span style={{ marginLeft: 8, color: 'var(--stoa-ink-3)', fontSize: 10, fontFamily: 'var(--font-mono)' }}>
-                  {entry.date}
+          ) : (
+            decisions.map((d) => (
+              <Link key={d.id} to={`/chamber/${d.id}`} style={{ textDecoration: 'none' }}>
+                <span style={{
+                  fontFamily: 'var(--font-sans)',
+                  fontSize: 11,
+                  color: d.status === 'resuelta' ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)',
+                  whiteSpace: 'nowrap' as const,
+                }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, marginRight: 5, letterSpacing: '0.03em' }}>{d.id}</span>
+                  {d.titulo}
                 </span>
-              )}
-            </span>
-          ))}
+              </Link>
+            ))
+          )}
         </div>
       </motion.div>
     </motion.div>

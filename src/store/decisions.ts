@@ -66,6 +66,7 @@ export const useDecisionsStore = create<DecisionsState>()(
             d.id === decisionId
               ? {
                   ...d,
+                  status: d.status === 'evaluacion' ? ('deliberando' as const) : d.status,
                   deliberationEntries: [
                     ...d.deliberationEntries,
                     { ...entry, id: `E-${Date.now()}` },

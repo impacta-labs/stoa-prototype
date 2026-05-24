@@ -1,21 +1,24 @@
 import { NavLink, useLocation } from 'react-router-dom'
-import { organization, councilSession, systemStatus } from '../data/fixtures'
 import { useIsMobile } from '../hooks/useViewport'
 import { useDecisionsStore } from '../store/decisions'
+import { useOrgStore } from '../store/org'
 
 const SCREENS = [
   { path: '/',             label: 'Atrio',     short: 'ATR' },
-  { path: '/chamber',     label: 'Decisión',   short: 'D-042' },
+  { path: '/chamber',     label: 'Decisiones',  short: 'DEC' },
   { path: '/reading-room',label: 'Archivo',    short: 'M-017' },
   { path: '/council',     label: 'Consejo',    short: 'SES' },
-  { path: '/weather',     label: 'Clima',      short: 'CLIMA' },
-  { path: '/horizon',     label: 'Horizonte',  short: 'HZN' },
+  { path: '/weather',     label: 'Clima',       short: 'CLM' },
+  { path: '/horizon',     label: 'Horizonte',   short: 'HZN' },
 ]
 
 export default function Nav() {
   const location = useLocation()
   const isMobile = useIsMobile()
-  const { pilotMode, togglePilotMode, openCreateModal } = useDecisionsStore()
+  const { pilotMode, togglePilotMode, openCreateModal, decisions } = useDecisionsStore()
+  const { name: orgName, isConfigured, openSetup } = useOrgStore()
+  const today = new Date()
+  const sessionRef = `S-${String(today.getFullYear()).slice(2)}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
 
   return (
     <nav
@@ -157,20 +160,24 @@ export default function Nav() {
           <>
             <div style={{ width: 1, height: 12, backgroundColor: 'var(--stoa-rule-strong)' }} />
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em' }}>
-              {councilSession.sessionRef}
+              {sessionRef}
             </span>
             <div style={{ width: 1, height: 12, backgroundColor: 'var(--stoa-rule-strong)' }} />
-            <div style={{ display: 'flex', flexDirection: 'column' as const, gap: 1 }}>
+            <button
+              onClick={openSetup}
+              style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, display: 'flex', flexDirection: 'column' as const, gap: 1 }}
+              title="Configurar organización"
+            >
               <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)', flexShrink: 0 }} />
+                <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: isConfigured ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)', flexShrink: 0 }} />
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-2)', letterSpacing: '0.02em' }}>
-                  {organization.name}
+                  {isConfigured ? orgName : 'Configurar org'}
                 </span>
               </div>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', paddingLeft: 10, letterSpacing: '0.04em' }}>
-                {systemStatus.overdueDecisions > 0 ? `${systemStatus.overdueDecisions} vencida` : organization.period}
+                {decisions.length} decisión{decisions.length !== 1 ? 'es' : ''}
               </span>
-            </div>
+            </button>
           </>
         )}
       </div>
