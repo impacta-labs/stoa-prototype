@@ -133,8 +133,8 @@ export default function NuevaIniciativa() {
 
         {/* Form */}
         <div style={{ padding: '22px 28px 28px' }}>
-          <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: '0 0 22px', lineHeight: 1.6, borderLeft: '1px solid var(--stoa-rule)', paddingLeft: 12 }}>
-            STOA convierte iniciativas de innovación en decisiones estructuradas con hipótesis, indicadores y horizonte de revisión. Describe la iniciativa y el sistema generará la pregunta estratégica y el marco de impacto.
+          <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: '0 0 22px', lineHeight: 1.6, borderLeft: '2px solid var(--stoa-gold)', paddingLeft: 12, backgroundColor: 'rgba(196,149,42,0.04)', padding: '10px 14px', borderTop: 'none', borderRight: 'none', borderBottom: 'none' }}>
+            <strong style={{ color: 'var(--stoa-ink-2)', fontWeight: 500 }}>Qué ocurre al crear:</strong> la IA analiza la iniciativa y genera automáticamente la pregunta estratégica, la hipótesis de impacto en euros y los indicadores de éxito. Solo necesitas describir la iniciativa con tus palabras.
           </p>
 
           {/* Nombre */}
