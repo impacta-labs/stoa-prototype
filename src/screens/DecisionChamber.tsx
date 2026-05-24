@@ -123,10 +123,10 @@ export default function DecisionChamber() {
     <>
       {/* Header row */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: allConditionsMet ? 'var(--stoa-resolve)' : 'var(--stoa-ink-2)' }}>
-          Condiciones de resolución
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: allConditionsMet ? 'var(--stoa-resolve)' : 'var(--stoa-amber)' }}>
+          Condiciones
         </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: allConditionsMet ? 'var(--stoa-resolve)' : 'var(--stoa-amber)', padding: '2px 8px', border: `1px solid ${allConditionsMet ? 'var(--stoa-resolve)' : 'var(--stoa-amber)'}` }}>
+        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, fontWeight: 500, color: allConditionsMet ? 'var(--stoa-resolve)' : 'var(--stoa-amber)', padding: '3px 10px', border: `1.5px solid ${allConditionsMet ? 'var(--stoa-resolve)' : 'var(--stoa-amber)'}` }}>
           {conditionsMet}/{decision.resolutionConditions.length}
         </span>
       </div>
@@ -220,8 +220,10 @@ export default function DecisionChamber() {
   ) : (
     <>
       <div style={{ marginBottom: 14 }}>
-        <SectionHeader label="Cerrar decisión" />
-        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '6px 0 0', letterSpacing: '0.04em', lineHeight: 1.6 }}>
+        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' as const, color: 'var(--stoa-gold)', display: 'block', marginBottom: 6 }}>
+          Cerrar decisión
+        </span>
+        <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0', letterSpacing: '0.04em', lineHeight: 1.7 }}>
           1 · Selecciona o escribe la resolución<br />
           2 · Añade una predicción (opcional)<br />
           3 · Registra para archivar
@@ -407,13 +409,13 @@ export default function DecisionChamber() {
           initial="hidden"
           animate="visible"
           style={{
-            padding: isMobile ? '24px 20px' : '28px 32px 40px 40px',
+            padding: isMobile ? '0' : '28px 32px 40px 40px',
             borderRight: isMobile ? 'none' : '1px solid var(--stoa-rule)',
             overflowY: 'auto' as const,
           }}
         >
-          {/* Deliberation — first, because this is where the session happens */}
-          <motion.div variants={depositItem} style={{ marginBottom: 28 }}>
+          {/* Deliberation */}
+          <motion.div variants={depositItem} style={{ padding: isMobile ? '24px 20px 20px' : '0 0 28px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12, paddingBottom: 10, borderBottom: '1px solid var(--stoa-rule)' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--stoa-ink-2)' }}>
@@ -494,17 +496,17 @@ export default function DecisionChamber() {
           {/* Mobile: conditions + close appear here, right after deliberation */}
           {isMobile && (
             <>
-              <motion.div variants={depositItem} style={{ marginBottom: 0, marginLeft: -20, marginRight: -20, padding: '20px 20px', backgroundColor: 'var(--stoa-surface-1)', borderTop: '1px solid var(--stoa-rule-strong)', borderBottom: '1px solid var(--stoa-rule-strong)' }}>
+              <motion.div variants={depositItem} style={{ padding: '20px 20px', backgroundColor: 'rgba(181, 98, 26, 0.08)', borderTop: '2px solid rgba(181, 98, 26, 0.5)', borderBottom: '1px solid rgba(181, 98, 26, 0.2)' }}>
                 {conditionsPanel}
               </motion.div>
-              <motion.div variants={depositItem} style={{ marginBottom: 0, marginLeft: -20, marginRight: -20, padding: '24px 20px', borderBottom: '1px solid var(--stoa-rule-strong)' }}>
+              <motion.div variants={depositItem} style={{ padding: '24px 20px', borderTop: isSettled ? '2px solid rgba(74, 122, 90, 0.5)' : '2px solid rgba(196, 149, 42, 0.5)', borderBottom: '1px solid var(--stoa-rule-strong)' }}>
                 {resolutionPanel}
               </motion.div>
             </>
           )}
 
-          {/* Marco de Impacto — reference zone, visually de-emphasized */}
-          <motion.div variants={depositItem} style={{ marginBottom: 32, paddingTop: isMobile ? 28 : 24, borderTop: isMobile ? 'none' : '1px solid var(--stoa-rule)' }}>
+          {/* Marco de Impacto — reference zone */}
+          <motion.div variants={depositItem} style={{ marginBottom: 32, padding: isMobile ? '28px 20px 0' : '24px 0 0', borderTop: '1px solid var(--stoa-rule-strong)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14, paddingBottom: 10, borderBottom: '1px solid var(--stoa-rule)' }}>
               <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--stoa-ink-3)' }}>
                 Marco de Impacto
@@ -636,7 +638,7 @@ export default function DecisionChamber() {
 
           {/* Mobile: metadata at the very bottom */}
           {isMobile && (
-            <motion.div variants={depositItem} style={{ paddingTop: 24, borderTop: '1px solid var(--stoa-rule)' }}>
+            <motion.div variants={depositItem} style={{ padding: '20px 20px 40px', backgroundColor: 'var(--stoa-surface-2)', borderTop: '1px solid var(--stoa-rule-strong)' }}>
               <SectionHeader label="Metadatos" />
               <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 0 }}>
                 {[
