@@ -8,8 +8,8 @@ const SCREENS = [
   { path: '/chamber',     label: 'Decisiones',  short: 'DEC' },
   { path: '/reading-room',label: 'Archivo',    short: 'M-017' },
   { path: '/council',     label: 'Consejo',    short: 'SES' },
-  { path: '/weather',     label: 'Clima',      short: 'CLIMA' },
-  { path: '/horizon',     label: 'Horizonte',  short: 'HZN' },
+  { path: '/weather',     label: 'Clima',       short: 'CLM' },
+  { path: '/horizon',     label: 'Horizonte',   short: 'HZN' },
 ]
 
 export default function Nav() {

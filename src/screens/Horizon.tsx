@@ -1,21 +1,49 @@
 import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { chamberEnter, settle, deposit, depositItem } from '../lib/motion'
 import SectionHeader from '../components/primitives/SectionHeader'
 import { useIsMobile } from '../hooks/useViewport'
-import { horizonData } from '../data/fixtures'
+import { useDecisionsStore, daysActive } from '../store/decisions'
+import { useOrgStore } from '../store/org'
 
-const convictionColor: Record<string, string> = {
-  Alta:  'var(--stoa-gold)',
-  Media: 'var(--stoa-ink-2)',
-  Baja:  'var(--stoa-ink-3)',
-  High:  'var(--stoa-gold)',
-  Medium:'var(--stoa-ink-2)',
-  Low:   'var(--stoa-ink-3)',
+const weightColor: Record<string, string> = {
+  Crítica:      'var(--stoa-amber)',
+  Mayor:        'var(--stoa-gold)',
+  Significativa:'var(--stoa-ink-2)',
+  Menor:        'var(--stoa-ink-3)',
+}
+
+const tipoLabel: Record<string, string> = {
+  'tecnología / IA':       'Tecnología / IA',
+  'proceso interno':       'Proceso',
+  'eficiencia operativa':  'Eficiencia',
+  'expansión':             'Expansión',
+  'modelo de negocio':     'Modelo',
+  'experiencia de cliente':'Experiencia',
+  'partnership':           'Partnership',
+  'cultura organizativa':  'Cultura',
 }
 
 export default function Horizon() {
   const isMobile = useIsMobile()
-  const h = horizonData
+  const { decisions } = useDecisionsStore()
+  const { name: orgName, isConfigured } = useOrgStore()
+
+  const active = decisions
+    .filter((d) => d.status !== 'resuelta')
+    .sort((a, b) => {
+      const order = { Crítica: 0, Mayor: 1, Significativa: 2, Menor: 3 }
+      return (order[a.weight] ?? 4) - (order[b.weight] ?? 4)
+    })
+
+  const resolved = decisions
+    .filter((d) => d.status === 'resuelta')
+    .sort((a, b) => new Date(b.settledAt ?? 0).getTime() - new Date(a.settledAt ?? 0).getTime())
+
+  const withPredictions = resolved.filter((d) => d.prediccion)
+
+  const today = new Date()
+  const period = `${today.getFullYear()}–${today.getFullYear() + 2}`
 
   return (
     <motion.div
@@ -33,6 +61,8 @@ export default function Horizon() {
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'baseline',
+          flexWrap: 'wrap' as const,
+          gap: 8,
         }}
       >
         <motion.div variants={settle} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
@@ -41,306 +71,179 @@ export default function Horizon() {
           </span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
           <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-            Registro prospectivo · 2026–2028
+            Perspectiva prospectiva · {period}
           </span>
         </motion.div>
         {!isMobile && (
           <motion.span variants={settle} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
-            Actualizado 23 May 2026 · {h.bets.length} apuestas · {h.triggers.length} condiciones
+            {isConfigured ? orgName : ''} · {active.length} apuesta{active.length !== 1 ? 's' : ''} activa{active.length !== 1 ? 's' : ''}
           </motion.span>
         )}
       </div>
 
-      {/* Bets + Predictions */}
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: isMobile ? '1fr' : '1fr 260px',
-          borderBottom: '1px solid var(--stoa-rule)',
-        }}
-      >
-        {/* Bets */}
+      {decisions.length === 0 ? (
         <motion.div
-          variants={deposit}
-          initial="hidden"
-          animate="visible"
-          style={{
-            padding: isMobile ? '20px 20px' : '24px 28px 24px 40px',
-            borderRight: isMobile ? 'none' : '1px solid var(--stoa-rule)',
-            borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
-          }}
+          variants={settle}
+          style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '60px 40px', textAlign: 'center' as const }}
         >
-          <SectionHeader label="Apuestas Estratégicas" meta={`${h.bets.length} registradas`} />
-          <div style={{ marginTop: 14 }}>
-            {h.bets.map((bet, i) => (
-              <motion.div
-                key={bet.id}
-                variants={depositItem}
-                style={{
-                  padding: '16px 0',
-                  borderBottom: i < h.bets.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
-                  <div style={{ flex: 1, marginRight: 12 }}>
-                    <p
-                      style={{
-                        fontFamily: 'var(--font-serif)',
-                        fontSize: isMobile ? 14 : 15,
-                        fontWeight: 400,
-                        color: 'var(--stoa-ink)',
-                        margin: '0 0 5px',
-                        lineHeight: 1.3,
-                      }}
+          <p style={{ fontFamily: 'var(--font-serif)', fontSize: 17, color: 'var(--stoa-ink-2)', margin: '0 0 8px', lineHeight: 1.4 }}>
+            Sin perspectiva registrada
+          </p>
+          <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: '0 0 20px', lineHeight: 1.7, maxWidth: 400 }}>
+            Las decisiones activas representan las apuestas estratégicas de la organización. Las predicciones registradas al cerrar cada decisión forman el historial prospectivo.
+          </p>
+          <Link to="/" style={{ textDecoration: 'none' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>
+              Ir al Atrio →
+            </span>
+          </Link>
+        </motion.div>
+      ) : (
+        <>
+          {/* Active decisions as strategic bets + Predictions */}
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile ? '1fr' : withPredictions.length > 0 ? '1fr 260px' : '1fr',
+              borderBottom: '1px solid var(--stoa-rule)',
+            }}
+          >
+            {/* Strategic bets (active decisions) */}
+            <motion.div
+              variants={deposit}
+              initial="hidden"
+              animate="visible"
+              style={{
+                padding: isMobile ? '20px 20px' : '24px 28px 24px 40px',
+                borderRight: isMobile ? 'none' : (withPredictions.length > 0 ? '1px solid var(--stoa-rule)' : 'none'),
+                borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
+              }}
+            >
+              <SectionHeader
+                label="Apuestas activas"
+                meta={`${active.length} en deliberación`}
+              />
+              <div style={{ marginTop: 14 }}>
+                {active.length === 0 ? (
+                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: '8px 0', lineHeight: 1.55 }}>
+                    Todas las decisiones están resueltas.
+                  </p>
+                ) : (
+                  active.map((d, i) => (
+                    <motion.div
+                      key={d.id}
+                      variants={depositItem}
+                      style={{ padding: '16px 0', borderBottom: i < active.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}
                     >
-                      {bet.title}
-                    </p>
-                    <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' as const }}>
-                      <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-                        {bet.owner}
-                      </span>
-                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                        {bet.id} · {bet.horizon}
-                      </span>
-                      {(bet as { originates?: string }).originates && (
-                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                          Origin: {(bet as { originates: string }).originates}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 8 }}>
+                        <div style={{ flex: 1, marginRight: 12 }}>
+                          <Link to={`/chamber/${d.id}`} style={{ textDecoration: 'none' }}>
+                            <p style={{ fontFamily: 'var(--font-serif)', fontSize: isMobile ? 14 : 15, fontWeight: 400, color: 'var(--stoa-ink)', margin: '0 0 5px', lineHeight: 1.3 }}>
+                              {d.preguntaEstrategica}
+                            </p>
+                          </Link>
+                          <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' as const }}>
+                            {d.owner && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>{d.owner}</span>}
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                              {d.id} · Plazo {d.deadline}
+                            </span>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                              {tipoLabel[d.tipoInnovacion] || d.tipoInnovacion}
+                            </span>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
+                              {daysActive(d.opened)}d activa
+                            </span>
+                          </div>
+                        </div>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: weightColor[d.weight] || 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const, flexShrink: 0, paddingTop: 3 }}>
+                          {d.weight}
                         </span>
+                      </div>
+                      {d.businessImpact.hypothesis && (
+                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: '0 0 8px', lineHeight: 1.65, borderLeft: '1px solid var(--stoa-rule)', paddingLeft: 12 }}>
+                          {d.businessImpact.hypothesis}
+                        </p>
                       )}
-                    </div>
-                  </div>
-                  <span
-                    style={{
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: 9,
-                      color: convictionColor[bet.conviction],
-                      letterSpacing: '0.09em',
-                      textTransform: 'uppercase' as const,
-                      flexShrink: 0,
-                      paddingTop: 3,
-                    }}
-                  >
-                    {bet.conviction}
-                  </span>
-                </div>
-                <p
-                  style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: 12,
-                    color: 'var(--stoa-ink-2)',
-                    margin: '0 0 8px',
-                    lineHeight: 1.65,
-                    borderLeft: '1px solid var(--stoa-rule)',
-                    paddingLeft: 12,
-                  }}
-                >
-                  {bet.rationale}
-                </p>
-                {(bet as { businessThesis?: string }).businessThesis && (
-                  <div style={{ borderLeft: '2px solid var(--stoa-gold)', paddingLeft: 12, marginBottom: 8 }}>
-                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', margin: '0 0 3px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
-                      Tesis de negocio
-                    </p>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: '0 0 4px', lineHeight: 1.55 }}>
-                      {(bet as { businessThesis: string }).businessThesis}
-                    </p>
-                    {(bet as { economicLever?: string }).economicLever && (
-                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0 }}>
-                        Palanca: {(bet as { economicLever: string }).economicLever}
+                      {d.businessImpact.leadingIndicators.length > 0 && !isMobile && (
+                        <div>
+                          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>Indicadores tempranos</p>
+                          {d.businessImpact.leadingIndicators.slice(0, 2).map((ind, j) => (
+                            <p key={j} style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '2px 0 0' }}>· {ind}</p>
+                          ))}
+                        </div>
+                      )}
+                    </motion.div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+
+            {/* Predictions from resolved decisions */}
+            {withPredictions.length > 0 && (
+              <motion.div
+                variants={deposit}
+                initial="hidden"
+                animate="visible"
+                style={{ padding: isMobile ? '20px 20px' : '24px 40px 24px 24px' }}
+              >
+                <SectionHeader label="Predicciones registradas" meta={`${withPredictions.length} activas`} />
+                <div style={{ marginTop: 14 }}>
+                  {withPredictions.map((d, i) => (
+                    <motion.div
+                      key={d.id}
+                      variants={depositItem}
+                      style={{ padding: '11px 0', borderBottom: i < withPredictions.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 5 }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{d.id}</span>
+                        <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>{d.businessImpact.reviewHorizon}</span>
+                      </div>
+                      <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.4, flex: 1, borderLeft: '1px solid var(--stoa-gold)', paddingLeft: 10 }}>
+                        {d.prediccion}
                       </p>
-                    )}
-                  </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* Resolution conditions as trigger conditions */}
+          {active.some((d) => d.resolutionConditions.some((c) => !c.satisfied)) && (
+            <motion.div
+              variants={deposit}
+              initial="hidden"
+              animate="visible"
+              style={{ padding: isMobile ? '20px 20px' : '24px 40px', borderBottom: '1px solid var(--stoa-rule)', flex: 1 }}
+            >
+              <SectionHeader
+                label="Condiciones pendientes"
+                meta="Lo que hay que resolver para cerrar las decisiones activas"
+              />
+              <div style={{ marginTop: 14, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
+                {active.flatMap((d) =>
+                  d.resolutionConditions.filter((c) => !c.satisfied).map((c) => (
+                    <motion.div key={`${d.id}-${c.id}`} variants={depositItem}>
+                      <div style={{ padding: '12px 14px', border: '1px solid var(--stoa-rule)', borderLeft: '2px solid var(--stoa-amber)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.06em' }}>{d.id}</span>
+                          {c.owner && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{c.owner}</span>}
+                        </div>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink)', margin: '0 0 4px', lineHeight: 1.4 }}>
+                          {c.label}
+                        </p>
+                        {c.due && (
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>Plazo: {c.due}</span>
+                        )}
+                      </div>
+                    </motion.div>
+                  ))
                 )}
-                {(bet as { leadingIndicators?: string[] }).leadingIndicators && !isMobile && (
-                  <div style={{ display: 'flex', gap: 24, paddingLeft: 12 }}>
-                    <div>
-                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>Indicadores tempranos</p>
-                      {(bet as { leadingIndicators: string[] }).leadingIndicators.map((ind, j) => (
-                        <p key={j} style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '2px 0 0' }}>{ind}</p>
-                      ))}
-                    </div>
-                    <div>
-                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.06em', textTransform: 'uppercase' as const }}>Próx. revisión</p>
-                      <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: '2px 0 0' }}>{(bet as { nextReview?: string }).nextReview || '—'}</p>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Predictions */}
-        <motion.div
-          variants={deposit}
-          initial="hidden"
-          animate="visible"
-          style={{ padding: isMobile ? '20px 20px' : '24px 40px 24px 24px' }}
-        >
-          <SectionHeader label="Predicciones" meta="Ponderadas" />
-          <div style={{ marginTop: 14 }}>
-            {h.predictions.map((p, i) => (
-              <motion.div
-                key={p.id}
-                variants={depositItem}
-                style={{
-                  padding: '11px 0',
-                  borderBottom: i < h.predictions.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, marginBottom: 6 }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 14, color: 'var(--stoa-ink)', width: 36, flexShrink: 0 }}>
-                    {Math.round(p.probability * 100)}%
-                  </span>
-                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.4, flex: 1 }}>
-                    {p.label}
-                  </p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, paddingLeft: 46 }}>
-                  <div style={{ flex: 1, height: 1, backgroundColor: 'var(--stoa-rule)' }}>
-                    <div
-                      style={{
-                        height: 1,
-                        width: `${Math.round(p.probability * 100)}%`,
-                        backgroundColor: 'var(--stoa-ink-3)',
-                      }}
-                    />
-                  </div>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                    {p.owner.split(' ')[0][0]}. {p.owner.split(' ')[1]}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
-
-      {/* Triggers + Watched Signals */}
-      <div
-        className="stoa-col-2"
-        style={{ flex: 1 }}
-      >
-        {/* Trigger Conditions */}
-        <motion.div
-          variants={deposit}
-          initial="hidden"
-          animate="visible"
-          style={{
-            padding: isMobile ? '20px 20px' : '24px 28px 24px 40px',
-            borderRight: isMobile ? 'none' : '1px solid var(--stoa-rule)',
-            borderBottom: isMobile ? '1px solid var(--stoa-rule)' : 'none',
-          }}
-        >
-          <SectionHeader label="Condiciones de Activación" meta={`${h.triggers.length} activas`} />
-          <div style={{ marginTop: 14 }}>
-            {h.triggers.map((t, i) => (
-              <motion.div
-                key={t.id}
-                variants={depositItem}
-                style={{
-                  padding: '14px 0',
-                  borderBottom: i < h.triggers.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
-                    {t.id}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-                    {t.watchedBy.split(' ')[0]} {t.watchedBy.split(' ')[1][0]}.
-                  </span>
-                </div>
-                <div
-                  style={{
-                    padding: '9px 12px',
-                    backgroundColor: 'var(--stoa-surface-1)',
-                    border: '1px solid var(--stoa-rule)',
-                    marginBottom: 7,
-                  }}
-                >
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
-                    If
-                  </p>
-                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.4 }}>
-                    {t.condition}
-                  </p>
-                </div>
-                <div
-                  style={{
-                    padding: '9px 12px',
-                    borderLeft: '2px solid var(--stoa-gold)',
-                  }}
-                >
-                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 3px', letterSpacing: '0.07em', textTransform: 'uppercase' as const }}>
-                    Then
-                  </p>
-                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.4 }}>
-                    {t.consequence}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-
-        {/* Watched Signals */}
-        <motion.div
-          variants={deposit}
-          initial="hidden"
-          animate="visible"
-          style={{ padding: isMobile ? '20px 20px' : '24px 40px 24px 28px' }}
-        >
-          <SectionHeader label="Señales Vigiladas" meta={`${h.watchedSignals.length} señales`} />
-          <div style={{ marginTop: 14 }}>
-            {h.watchedSignals.map((s, i) => (
-              <motion.div
-                key={s.id}
-                variants={depositItem}
-                style={{
-                  padding: '13px 0',
-                  borderBottom: i < h.watchedSignals.length - 1 ? '1px solid var(--stoa-rule)' : undefined,
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 5 }}>
-                  <div style={{ display: 'flex', gap: 7, alignItems: 'baseline' }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                      {s.id}
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: 13, fontWeight: 500, color: 'var(--stoa-ink)' }}>
-                      {s.label}
-                    </span>
-                  </div>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', flexShrink: 0, marginLeft: 8 }}>
-                    {s.owner.split(' ')[0][0]}. {s.owner.split(' ')[1]}
-                  </span>
-                </div>
-                <p
-                  style={{
-                    fontFamily: 'var(--font-sans)',
-                    fontSize: 12,
-                    color: 'var(--stoa-ink-2)',
-                    margin: '0 0 6px',
-                    lineHeight: 1.5,
-                    borderLeft: '1px solid var(--stoa-gold)',
-                    paddingLeft: 10,
-                  }}
-                >
-                  {s.reading}
-                </p>
-                <div style={{ display: 'flex', gap: 10 }}>
-                  <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-                    {s.source}
-                  </span>
-                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-                    Read {s.lastRead}
-                  </span>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
-      </div>
+              </div>
+            </motion.div>
+          )}
+        </>
+      )}
     </motion.div>
   )
 }
