@@ -15,7 +15,7 @@ const SCREENS = [
 export default function Nav() {
   const location = useLocation()
   const isMobile = useIsMobile()
-  const { pilotMode, togglePilotMode, openCreateModal, decisions } = useDecisionsStore()
+  const { openCreateModal, decisions } = useDecisionsStore()
   const { name: orgName, isConfigured, openSetup } = useOrgStore()
   const today = new Date()
   const sessionRef = `S-${String(today.getFullYear()).slice(2)}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
@@ -134,27 +134,6 @@ export default function Nav() {
           {isMobile ? '+' : '+ Nueva'}
         </button>
 
-        {/* Demo mode toggle */}
-        {!isMobile && (
-          <button
-            onClick={togglePilotMode}
-            title="Modo guiado: muestra pistas contextuales en cada pantalla"
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 9,
-              color: pilotMode ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)',
-              background: 'none',
-              border: `1px solid ${pilotMode ? 'var(--stoa-gold)' : 'var(--stoa-rule)'}`,
-              padding: '3px 8px',
-              cursor: 'pointer',
-              letterSpacing: '0.06em',
-              textTransform: 'uppercase' as const,
-              flexShrink: 0,
-            }}
-          >
-            {pilotMode ? 'Guiado ●' : 'Guiado'}
-          </button>
-        )}
 
         {/* System state */}
         {!isMobile && (
