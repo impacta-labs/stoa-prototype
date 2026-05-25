@@ -94,7 +94,7 @@ export default function Horizon() {
           </p>
           <Link to="/" style={{ textDecoration: 'none' }}>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.04em' }}>
-              Ir al Atrio →
+              Ir al Dashboard →
             </span>
           </Link>
         </motion.div>

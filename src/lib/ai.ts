@@ -468,7 +468,7 @@ export async function generarDecisionIA(params: {
     const id = nextDecisionId(decisions)
     const businessImpact: BusinessImpact = {
       hypothesis: data.hipotesis,
-      plLever: PL_LEVERS[tipo] ?? 'Por definir',
+      plLever: data.plLever || PL_LEVERS[tipo] || 'Por definir',
       leadingIndicators: data.indicadoresLideres ?? [],
       laggingIndicators: LAGGING_INDICATORS[tipo] ?? [],
       responsible: owner,

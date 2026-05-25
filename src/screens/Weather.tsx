@@ -48,11 +48,11 @@ export default function Weather() {
       >
         <motion.div variants={settle} style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const }}>
-            Clima Organizacional
+            Pulso Organizativo
           </span>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
           <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
-            Lectura derivada del registro de deliberaciones
+            Patrones detectados en el registro de decisiones
           </span>
         </motion.div>
         <motion.div variants={settle}>
@@ -66,16 +66,16 @@ export default function Weather() {
       <motion.div variants={settle}>
         <div style={{ padding: isMobile ? '32px 20px 24px' : '48px 40px 32px', borderBottom: '1px solid var(--stoa-rule)' }}>
           <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', margin: '0 0 16px', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-            {climateReady ? 'Umbral alcanzado — lectura en proceso' : 'Lectura no disponible'}
+            {climateReady ? 'Datos suficientes para análisis' : 'Acumulando datos'}
           </p>
           <p style={{ fontFamily: 'var(--font-serif)', fontSize: isMobile ? 18 : 22, fontWeight: 400, color: 'var(--stoa-ink-2)', margin: '0 0 20px', lineHeight: 1.45, maxWidth: 560 }}>
             {climateReady
-              ? 'Se están acumulando suficientes señales para una primera lectura del clima organizativo.'
-              : 'El clima organizativo no es aún legible.'
+              ? 'Hay suficientes decisiones registradas para detectar patrones en cómo decide la organización.'
+              : 'Registra más decisiones para ver patrones de comportamiento estratégico.'
             }
           </p>
           <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.65, maxWidth: 520 }}>
-            El clima organizativo se deriva del registro de deliberaciones: decisiones en curso, posiciones registradas, tensiones documentadas, patrones repetidos. Hasta que se acumule suficiente data operativa, la lectura sería ruido en lugar de señal.
+            STOA analiza el historial de decisiones para detectar patrones: concentración en ciertos tipos de iniciativas, decisiones sin responsable, hipótesis sin cuantificar. Cuantas más decisiones se registren, más preciso es el diagnóstico.
           </p>
         </div>
 
