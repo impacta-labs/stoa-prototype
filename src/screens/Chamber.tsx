@@ -6,6 +6,19 @@ import { useIsMobile } from '../hooks/useViewport'
 import { useDecisionsStore, daysActive } from '../store/decisions'
 import { useOrgStore } from '../store/org'
 
+function parseFinancialImpact(text: string): string | null {
+  if (!text) return null
+  const rp = text.match(/€\s*(\d+(?:[.,]\d+)?)\s*[-–]\s*(\d+(?:[.,]\d+)?)\s*M/i)
+  if (rp) return `€${rp[1]}–${rp[2]}M`
+  const rs = text.match(/(\d+(?:[.,]\d+)?)\s*[-–]\s*(\d+(?:[.,]\d+)?)\s*M€/i)
+  if (rs) return `€${rs[1]}–${rs[2]}M`
+  const sp = text.match(/€\s*(\d+(?:[.,]\d+)?)\s*M/i)
+  if (sp) return `€${sp[1]}M`
+  const ss = text.match(/(\d+(?:[.,]\d+)?)\s*M€/i)
+  if (ss) return `€${ss[1]}M`
+  return null
+}
+
 const statusColor: Record<string, string> = {
   evaluacion:  'var(--stoa-ink-3)',
   deliberando: 'var(--stoa-gold)',
@@ -101,7 +114,7 @@ export default function Chamber() {
             Ninguna decisión en registro
           </p>
           <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: '0 0 24px', lineHeight: 1.6, maxWidth: 400 }}>
-            Crea la primera iniciativa para abrir una sala de deliberación y comenzar a construir memoria institucional.
+            Registra tu primera iniciativa. La IA genera automáticamente la pregunta estratégica, la hipótesis de impacto en euros y los indicadores de éxito.
           </p>
           <button
             onClick={openCreateModal}
@@ -130,7 +143,7 @@ export default function Chamber() {
           {active.length > 0 && (
             <div style={{ borderBottom: '1px solid var(--stoa-rule)' }}>
               <div style={{ padding: isMobile ? '16px 20px 10px' : '18px 40px 10px' }}>
-                <SectionHeader label="En Deliberación" meta={`${active.length} activa${active.length !== 1 ? 's' : ''}`} />
+                <SectionHeader label="Activas" meta={`${active.length} iniciativa${active.length !== 1 ? 's' : ''}`} />
               </div>
               {active.map((d, i) => (
                 <motion.div key={d.id} variants={depositItem}>
@@ -160,8 +173,12 @@ export default function Chamber() {
                         <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: '0 0 5px', lineHeight: 1.4 }}>
                           {d.titulo}
                         </p>
-                        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '2px 14px' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '2px 14px', alignItems: 'center' }}>
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.03em' }}>{d.id}</span>
+                          {(() => {
+                            const fi = parseFinancialImpact(d.businessImpact?.plLever || '') || parseFinancialImpact(d.businessImpact?.hypothesis || '')
+                            return fi ? <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-gold)', fontWeight: 500 }}>{fi}</span> : null
+                          })()}
                           <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>{d.owner || 'Sin responsable'}</span>
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>Plazo {d.deadline}</span>
                           <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{tipoLabel[d.tipoInnovacion] || d.tipoInnovacion}</span>
@@ -192,7 +209,6 @@ export default function Chamber() {
                         display: 'flex',
                         alignItems: 'flex-start',
                         gap: 14,
-                        opacity: 0.7,
                       }}
                     >
                       <div style={{ paddingTop: 6, flexShrink: 0 }}>
@@ -212,8 +228,12 @@ export default function Chamber() {
                             {d.selectedVerdict}
                           </p>
                         )}
-                        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '2px 14px' }}>
+                        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '2px 14px', alignItems: 'center' }}>
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.03em' }}>{d.id}</span>
+                          {(() => {
+                            const fi = parseFinancialImpact(d.businessImpact?.plLever || '') || parseFinancialImpact(d.businessImpact?.hypothesis || '')
+                            return fi ? <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-resolve)' }}>{fi}</span> : null
+                          })()}
                           {d.owner && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>{d.owner}</span>}
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{tipoLabel[d.tipoInnovacion] || d.tipoInnovacion}</span>
                         </div>

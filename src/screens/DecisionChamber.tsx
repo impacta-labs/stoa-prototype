@@ -33,16 +33,6 @@ const statusColor: Record<string, string> = {
   memoria: 'var(--stoa-ink-3)',
 }
 
-function PilotHint({ text }: { text: string }) {
-  const pilotMode = useDecisionsStore((s) => s.pilotMode)
-  if (!pilotMode) return null
-  return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '5px 10px', backgroundColor: 'rgba(196, 149, 42, 0.05)', borderLeft: '2px solid var(--stoa-gold)', marginBottom: 10 }}>
-      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, flexShrink: 0 }}>Modo Guiado</span>
-      <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>{text}</span>
-    </div>
-  )
-}
 
 export default function DecisionChamber() {
   const { id } = useParams<{ id: string }>()
@@ -203,7 +193,7 @@ export default function DecisionChamber() {
         </span>
         <div style={{ display: 'flex', flexDirection: 'column' as const }}>
           {[
-            { to: '/', label: 'Ver el Atrio' },
+            { to: '/', label: 'Volver al Dashboard' },
             { to: '/reading-room', label: 'Revisar el Archivo' },
             { to: '/chamber', label: 'Abrir otra decisión' },
           ].map(({ to, label }, i, arr) => (
@@ -229,7 +219,6 @@ export default function DecisionChamber() {
           3 · Registra para archivar
         </p>
       </div>
-      <PilotHint text="La resolución y la predicción quedan en el Archivo Estratégico como precedente." />
       <div>
         {decision.verdictOptions.map((opt) => (
           <button
@@ -509,14 +498,13 @@ export default function DecisionChamber() {
           <motion.div variants={depositItem} style={{ marginBottom: 32, padding: isMobile ? '28px 20px 0' : '24px 0 0', borderTop: '1px solid var(--stoa-rule-strong)' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14, paddingBottom: 10, borderBottom: '1px solid var(--stoa-rule)' }}>
               <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--stoa-ink-3)' }}>
-                Marco de Impacto
+                Impacto Financiero
               </span>
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: decision.businessImpact.evidenceStatus === 'Sin datos' ? 'var(--stoa-ink-3)' : 'var(--stoa-gold)', letterSpacing: '0.06em' }}>
                 Evidencia: {decision.businessImpact.evidenceStatus}
               </span>
             </div>
 
-            <PilotHint text="Vincula la iniciativa a la cuenta de explotación. Hipótesis, indicadores y riesgo de no actuar." />
 
             {/* Hipótesis editable */}
             <div style={{ marginBottom: 16 }}>
@@ -621,7 +609,6 @@ export default function DecisionChamber() {
             </div>
             {showAnalysis && (
               <div style={{ marginTop: 14 }}>
-                <PilotHint text="El sistema identifica qué falta para que esta decisión sea revisable y cerrable." />
                 {analysis.map((obs, i) => (
                   <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 0', borderBottom: i < analysis.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: observationColor[obs.type], letterSpacing: '0.07em', textTransform: 'uppercase' as const, flexShrink: 0, paddingTop: 2, minWidth: 100 }}>
