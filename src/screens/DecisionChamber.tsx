@@ -54,6 +54,15 @@ export default function DecisionChamber() {
   const [bcInversion, setBcInversion] = useState('')
   const [bcRetorno, setBcRetorno] = useState('')
   const [bcConfianza, setBcConfianza] = useState<'Bajo' | 'Medio' | 'Alto'>('Medio')
+  const [editingKpiId, setEditingKpiId] = useState<string | null>(null)
+  const [kpiNombre, setKpiNombre] = useState('')
+  const [kpiUnidad, setKpiUnidad] = useState('')
+  const [kpiBaseline, setKpiBaseline] = useState('')
+  const [kpiEuroUnidad, setKpiEuroUnidad] = useState('')
+  const [kpiObjetivo, setKpiObjetivo] = useState('')
+  const [kpiDelta, setKpiDelta] = useState('')
+  const [kpiFecha, setKpiFecha] = useState('')
+  const [kpiResponsable, setKpiResponsable] = useState('')
 
   const isSettled = decision ? (decision.status === 'resuelta' || verdictState === 'settled') : false
   const days = decision ? daysActive(decision.opened) : 0
@@ -133,6 +142,51 @@ export default function DecisionChamber() {
     setBcRetorno(bc?.retornoEsperado != null ? String(bc.retornoEsperado) : '')
     setBcConfianza(bc?.confianza ?? 'Medio')
     setEditingBusinessCase(true)
+  }
+
+  function openKpiEditor(kpi?: import('../types').InvestmentKPI) {
+    setKpiNombre(kpi?.nombre ?? '')
+    setKpiUnidad(kpi?.unidad ?? '')
+    setKpiBaseline(kpi?.baselineValor != null ? String(kpi.baselineValor) : '')
+    setKpiEuroUnidad(kpi?.baselineEuroUnidad != null ? String(kpi.baselineEuroUnidad) : '')
+    setKpiObjetivo(kpi?.objetivoValor != null ? String(kpi.objetivoValor) : '')
+    setKpiDelta(kpi?.deltaEuros != null ? String(kpi.deltaEuros) : '')
+    setKpiFecha(kpi?.fechaMedicion ?? '')
+    setKpiResponsable(kpi?.responsable ?? '')
+    setEditingKpiId(kpi?.id ?? 'new')
+  }
+
+  function handleSaveKpi() {
+    if (!kpiNombre.trim()) return
+    const existing = decision!.kpis ?? []
+    const baseline = parseFloat(kpiBaseline) || null
+    const euroUnit = parseFloat(kpiEuroUnidad) || null
+    const objetivo = parseFloat(kpiObjetivo) || null
+    const delta = parseFloat(kpiDelta) || (baseline != null && euroUnit != null && objetivo != null
+      ? Math.abs(objetivo - baseline) * euroUnit
+      : null)
+    const kpi: import('../types').InvestmentKPI = {
+      id: editingKpiId === 'new' ? `KPI-${Date.now()}` : editingKpiId!,
+      nombre: kpiNombre.trim(),
+      unidad: kpiUnidad.trim(),
+      baselineValor: baseline,
+      baselineEuroUnidad: euroUnit,
+      objetivoValor: objetivo,
+      deltaEuros: delta,
+      fechaMedicion: kpiFecha.trim(),
+      responsable: kpiResponsable.trim(),
+    }
+    const updated = editingKpiId === 'new'
+      ? [...existing, kpi]
+      : existing.map(k => k.id === editingKpiId ? kpi : k)
+    updateDecision(decision!.id, { kpis: updated })
+    setEditingKpiId(null)
+  }
+
+  function handleDeleteKpi(kpiId: string) {
+    const updated = (decision!.kpis ?? []).filter(k => k.id !== kpiId)
+    updateDecision(decision!.id, { kpis: updated })
+    if (editingKpiId === kpiId) setEditingKpiId(null)
   }
 
   // Shared panel content — rendered inline after deliberation on mobile,
@@ -637,6 +691,133 @@ export default function DecisionChamber() {
                   </button>
                 )}
               </div>
+            )}
+          </motion.div>
+
+          {/* KPIs con puente financiero */}
+          <motion.div variants={depositItem} style={{ marginBottom: 0, padding: isMobile ? '24px 20px' : '24px 0', borderTop: '1px solid var(--stoa-rule-strong)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14, paddingBottom: 10, borderBottom: '1px solid var(--stoa-rule)' }}>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--stoa-ink-2)' }}>
+                  Indicadores
+                </span>
+                {(() => {
+                  const total = (decision.kpis ?? []).reduce((s, k) => s + (k.deltaEuros ?? 0), 0)
+                  if (total > 0) return (
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-resolve)', fontWeight: 500 }}>
+                      {total >= 1000000 ? `€${(total / 1000000).toFixed(1)}M` : `€${(total / 1000).toFixed(0)}k`} potencial
+                    </span>
+                  )
+                  return null
+                })()}
+              </div>
+              {!isSettled && (
+                <button
+                  onClick={() => editingKpiId ? setEditingKpiId(null) : openKpiEditor()}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.04em' }}
+                >
+                  {editingKpiId ? 'Cancelar' : '+ Añadir KPI'}
+                </button>
+              )}
+            </div>
+
+            {/* KPI editor */}
+            {editingKpiId && (
+              <div style={{ marginBottom: 16, padding: '14px', border: '1px solid var(--stoa-gold)', backgroundColor: 'rgba(196,149,42,0.04)' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '2fr 1fr', gap: 10, marginBottom: 10 }}>
+                  <div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>Nombre del KPI</span>
+                    <input value={kpiNombre} onChange={e => setKpiNombre(e.target.value)} placeholder="Ej: Tiempo de formulación" style={{ width: '100%', fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule-strong)', padding: '6px 10px', outline: 'none', boxSizing: 'border-box' as const }} />
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>Unidad</span>
+                    <input value={kpiUnidad} onChange={e => setKpiUnidad(e.target.value)} placeholder="semanas, %, días…" style={{ width: '100%', fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule-strong)', padding: '6px 10px', outline: 'none', boxSizing: 'border-box' as const }} />
+                  </div>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 10, marginBottom: 10 }}>
+                  {[
+                    { label: 'Valor actual', value: kpiBaseline, set: setKpiBaseline, placeholder: '8' },
+                    { label: '€ por unidad', value: kpiEuroUnidad, set: setKpiEuroUnidad, placeholder: '45000' },
+                    { label: 'Valor objetivo', value: kpiObjetivo, set: setKpiObjetivo, placeholder: '3' },
+                    { label: 'Delta en € (total)', value: kpiDelta, set: setKpiDelta, placeholder: 'Auto si vacío' },
+                  ].map(({ label, value, set, placeholder }) => (
+                    <div key={label}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>{label}</span>
+                      <input type="number" value={value} onChange={e => set(e.target.value)} placeholder={placeholder} style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule-strong)', padding: '6px 8px', outline: 'none', boxSizing: 'border-box' as const }} />
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 10, marginBottom: 12 }}>
+                  <div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>Fecha de medición</span>
+                    <input value={kpiFecha} onChange={e => setKpiFecha(e.target.value)} placeholder="Q4 2026" style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule-strong)', padding: '6px 8px', outline: 'none', boxSizing: 'border-box' as const }} />
+                  </div>
+                  <div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>Responsable</span>
+                    <input value={kpiResponsable} onChange={e => setKpiResponsable(e.target.value)} placeholder="Quién mide" style={{ width: '100%', fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule-strong)', padding: '6px 8px', outline: 'none', boxSizing: 'border-box' as const }} />
+                  </div>
+                </div>
+                {kpiBaseline && kpiEuroUnidad && kpiObjetivo && !kpiDelta && (
+                  <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', margin: '0 0 10px' }}>
+                    Delta auto: €{Math.abs(parseFloat(kpiObjetivo) - parseFloat(kpiBaseline)) * parseFloat(kpiEuroUnidad) | 0}
+                  </p>
+                )}
+                <button onClick={handleSaveKpi} disabled={!kpiNombre.trim()} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: kpiNombre.trim() ? 'var(--stoa-gold)' : 'var(--stoa-ink-3)', background: 'none', border: `1px solid ${kpiNombre.trim() ? 'var(--stoa-gold)' : 'var(--stoa-rule)'}`, padding: '5px 12px', cursor: kpiNombre.trim() ? 'pointer' : 'default', letterSpacing: '0.04em' }}>
+                  Guardar indicador
+                </button>
+              </div>
+            )}
+
+            {/* KPI list */}
+            {(decision.kpis ?? []).length > 0 ? (
+              <div>
+                {(decision.kpis ?? []).map((kpi, i) => (
+                  <div key={kpi.id} style={{ padding: '13px 0', borderBottom: i < (decision.kpis!.length - 1) ? '1px solid var(--stoa-rule)' : undefined }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+                          <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.3 }}>
+                            {kpi.nombre}
+                          </p>
+                          {kpi.deltaEuros != null && kpi.deltaEuros > 0 && (
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--stoa-resolve)', fontWeight: 500, flexShrink: 0 }}>
+                              {kpi.deltaEuros >= 1000000
+                                ? `+€${(kpi.deltaEuros / 1000000).toFixed(1)}M`
+                                : `+€${(kpi.deltaEuros / 1000).toFixed(0)}k`}
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: '3px 14px', alignItems: 'center' }}>
+                          {kpi.baselineValor != null && kpi.objetivoValor != null && (
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)' }}>
+                              {kpi.baselineValor} → {kpi.objetivoValor} {kpi.unidad}
+                            </span>
+                          )}
+                          {kpi.baselineEuroUnidad != null && kpi.baselineEuroUnidad > 0 && (
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+                              €{kpi.baselineEuroUnidad >= 1000 ? `${(kpi.baselineEuroUnidad/1000).toFixed(0)}k` : kpi.baselineEuroUnidad}/un.
+                            </span>
+                          )}
+                          {kpi.fechaMedicion && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>{kpi.fechaMedicion}</span>}
+                          {kpi.responsable && <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>{kpi.responsable}</span>}
+                        </div>
+                      </div>
+                      {!isSettled && (
+                        <div style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                          <button onClick={() => openKpiEditor(kpi)} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.04em', padding: '2px 0' }}>Editar</button>
+                          <button onClick={() => handleDeleteKpi(kpi.id)} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.04em', padding: '2px 0' }}>Borrar</button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              !editingKpiId && (
+                <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.55 }}>
+                  Sin indicadores financieros. Añade KPIs para explicar de dónde viene el retorno esperado.
+                </p>
+              )
             )}
           </motion.div>
 

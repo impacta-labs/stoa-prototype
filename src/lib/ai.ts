@@ -490,6 +490,20 @@ export async function generarDecisionIA(params: {
       confianza: ['Bajo', 'Medio', 'Alto'].includes(ci.confianza) ? ci.confianza : 'Medio',
     } : undefined
 
+    const kpis = Array.isArray(data.kpis)
+      ? data.kpis.map((k: any, i: number) => ({
+          id: `KPI-${Date.now()}-${i}`,
+          nombre: k.nombre ?? '',
+          unidad: k.unidad ?? '',
+          baselineValor: typeof k.baselineValor === 'number' ? k.baselineValor : null,
+          baselineEuroUnidad: typeof k.baselineEuroUnidad === 'number' ? k.baselineEuroUnidad : null,
+          objetivoValor: typeof k.objetivoValor === 'number' ? k.objetivoValor : null,
+          deltaEuros: typeof k.deltaEuros === 'number' ? k.deltaEuros : null,
+          fechaMedicion: k.fechaMedicion ?? '',
+          responsable: k.responsable ?? '',
+        }))
+      : undefined
+
     return {
       id,
       titulo,
@@ -502,6 +516,7 @@ export async function generarDecisionIA(params: {
       status: 'evaluacion',
       businessImpact,
       businessCase,
+      kpis,
       verdictOptions: VERDICT_OPTIONS[tipo] ?? ['Proceder', 'Aplazar', 'Replantear'],
       selectedVerdict: null,
       settledAt: null,

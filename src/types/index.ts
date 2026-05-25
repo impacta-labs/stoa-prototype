@@ -59,10 +59,11 @@ export interface BusinessCase {
 export interface InvestmentKPI {
   id: string
   nombre: string
+  unidad: string                       // ej: "semanas", "días", "%", "M€"
   baselineValor: number | null
   baselineEuroUnidad: number | null   // € por unidad del KPI
   objetivoValor: number | null
-  deltaEuros: number | null           // auto-calculated
+  deltaEuros: number | null           // impacto financiero total si se alcanza objetivo
   fechaMedicion: string
   responsable: string
 }
