@@ -9,6 +9,7 @@ import ReadingRoom from './screens/ReadingRoom'
 import Council from './screens/Council'
 import Weather from './screens/Weather'
 import Horizon from './screens/Horizon'
+import ExecutiveExport from './screens/ExecutiveExport'
 import { useDecisionsStore } from './store/decisions'
 import { useOrgStore } from './store/org'
 
@@ -40,6 +41,7 @@ export default function App() {
         <Route path="/council" element={<Layout><Council /></Layout>} />
         <Route path="/weather" element={<Layout><Weather /></Layout>} />
         <Route path="/horizon" element={<Layout><Horizon /></Layout>} />
+        <Route path="/chamber/:id/export" element={<ExecutiveExport />} />
       </Routes>
     </HashRouter>
   )

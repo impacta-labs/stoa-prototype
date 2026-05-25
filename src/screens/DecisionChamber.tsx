@@ -475,10 +475,15 @@ export default function DecisionChamber() {
                     {decision.tipoInnovacion}
                   </span>
                 </div>
-                <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
+                <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
                   <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
                     {days}d activa · Plazo {decision.deadline}
                   </span>
+                  <Link to={`/chamber/${decision.id}/export`} style={{ textDecoration: 'none' }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.07em', border: '1px solid var(--stoa-gold-muted)', padding: '3px 9px', textTransform: 'uppercase' as const, whiteSpace: 'nowrap' as const }}>
+                      Exportar →
+                    </span>
+                  </Link>
                 </div>
               </div>
               <div style={{ marginBottom: 4 }}>
