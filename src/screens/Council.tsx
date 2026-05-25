@@ -13,86 +13,80 @@ const ROMAN = ['I', 'II', 'III']
 const STATIONS = [
   {
     id: 'revision',
-    label: 'En Revisión',
-    description: 'Iniciativas activas. Hipótesis, indicadores y estado de deliberación.',
+    label: 'Revisión',
+    description: 'Estado de cada iniciativa activa: hipótesis, responsable y próximo paso.',
   },
   {
     id: 'resueltas',
     label: 'Resueltas',
-    description: 'Decisiones cerradas con veredicto registrado y predicción de impacto.',
+    description: 'Decisiones cerradas con veredicto y predicción de impacto registrados.',
   },
   {
     id: 'cierre',
     label: 'Cierre',
-    description: 'Acciones pendientes, condiciones sin cumplir y registro de sesión.',
+    description: 'Condiciones pendientes, acuerdos y resumen ejecutivo de la sesión.',
   },
 ]
 
+function parseFinancialImpact(text: string): string | null {
+  if (!text) return null
+  const rp = text.match(/€\s*(\d+(?:[.,]\d+)?)\s*[-–]\s*(\d+(?:[.,]\d+)?)\s*M/i)
+  if (rp) return `€${rp[1]}–${rp[2]}M`
+  const rs = text.match(/(\d+(?:[.,]\d+)?)\s*[-–]\s*(\d+(?:[.,]\d+)?)\s*M€/i)
+  if (rs) return `€${rs[1]}–${rs[2]}M`
+  const sp = text.match(/€\s*(\d+(?:[.,]\d+)?)\s*M/i)
+  if (sp) return `€${sp[1]}M`
+  const ss = text.match(/(\d+(?:[.,]\d+)?)\s*M€/i)
+  if (ss) return `€${ss[1]}M`
+  return null
+}
+
 function DecisionRevisionCard({ decision }: { decision: UserDecision }) {
   const navigate = useNavigate()
+  const fi = parseFinancialImpact(decision.businessImpact?.plLever || '') ||
+             parseFinancialImpact(decision.businessImpact?.hypothesis || '')
   return (
     <div
       onClick={() => navigate(`/chamber/${decision.id}`)}
-      style={{
-        padding: '18px 0',
-        borderBottom: '1px solid var(--stoa-rule)',
-        cursor: 'pointer',
-      }}
+      style={{ padding: '18px 0', borderBottom: '1px solid var(--stoa-rule)', cursor: 'pointer' }}
     >
-      <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginBottom: 6, flexWrap: 'wrap' as const }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.08em' }}>
-          {decision.id}
-        </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
-          {decision.tipoInnovacion}
-        </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
-          {decision.weight}
-        </span>
-        {decision.owner && (
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-            {decision.owner}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' as const }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.08em' }}>
+            {decision.id}
           </span>
-        )}
-        {decision.deadline && (
-          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.04em' }}>
-            {decision.deadline}
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
+            {decision.tipoInnovacion}
+          </span>
+          {decision.owner && (
+            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+              {decision.owner}
+            </span>
+          )}
+          {decision.deadline && (
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.04em' }}>
+              {decision.deadline}
+            </span>
+          )}
+        </div>
+        {fi && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-gold)', fontWeight: 500, flexShrink: 0, marginLeft: 12 }}>
+            {fi}
           </span>
         )}
       </div>
-      <p style={{
-        fontFamily: 'var(--font-serif)',
-        fontSize: 15,
-        color: 'var(--stoa-ink)',
-        margin: '0 0 10px',
-        lineHeight: 1.55,
-        fontStyle: 'italic',
-      }}>
+      <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink)', margin: '0 0 10px', lineHeight: 1.55, fontStyle: 'italic' }}>
         {decision.preguntaEstrategica}
       </p>
       {decision.businessImpact.hypothesis && (
-        <p style={{
-          fontFamily: 'var(--font-sans)',
-          fontSize: 12,
-          color: 'var(--stoa-ink-3)',
-          margin: '0 0 8px',
-          lineHeight: 1.55,
-        }}>
-          {decision.businessImpact.hypothesis.slice(0, 140)}{decision.businessImpact.hypothesis.length > 140 ? '…' : ''}
+        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-3)', margin: '0 0 8px', lineHeight: 1.55 }}>
+          {decision.businessImpact.hypothesis.slice(0, 160)}{decision.businessImpact.hypothesis.length > 160 ? '…' : ''}
         </p>
       )}
       {decision.businessImpact.leadingIndicators.length > 0 && (
         <div style={{ display: 'flex', flexWrap: 'wrap' as const, gap: 6 }}>
           {decision.businessImpact.leadingIndicators.slice(0, 2).map((ind, i) => (
-            <span key={i} style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 9,
-              color: 'var(--stoa-ink-3)',
-              backgroundColor: 'rgba(255,255,255,0.03)',
-              border: '1px solid var(--stoa-rule)',
-              padding: '2px 8px',
-              letterSpacing: '0.02em',
-            }}>
+            <span key={i} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', backgroundColor: 'rgba(255,255,255,0.03)', border: '1px solid var(--stoa-rule)', padding: '2px 8px', letterSpacing: '0.02em' }}>
               {ind.slice(0, 60)}{ind.length > 60 ? '…' : ''}
             </span>
           ))}
@@ -103,18 +97,27 @@ function DecisionRevisionCard({ decision }: { decision: UserDecision }) {
 }
 
 function DecisionResolvedCard({ decision }: { decision: UserDecision }) {
+  const fi = parseFinancialImpact(decision.businessImpact?.plLever || '') ||
+             parseFinancialImpact(decision.businessImpact?.hypothesis || '')
   return (
     <div style={{ padding: '18px 0', borderBottom: '1px solid var(--stoa-rule)' }}>
-      <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', marginBottom: 6, flexWrap: 'wrap' as const }}>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.08em' }}>
-          {decision.id}
-        </span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
-          {decision.tipoInnovacion}
-        </span>
-        {decision.owner && (
-          <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-            {decision.owner}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexWrap: 'wrap' as const }}>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-resolve)', letterSpacing: '0.08em' }}>
+            {decision.id}
+          </span>
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
+            {decision.tipoInnovacion}
+          </span>
+          {decision.owner && (
+            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
+              {decision.owner}
+            </span>
+          )}
+        </div>
+        {fi && (
+          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-resolve)', flexShrink: 0, marginLeft: 12 }}>
+            {fi}
           </span>
         )}
       </div>
@@ -144,13 +147,13 @@ function DecisionResolvedCard({ decision }: { decision: UserDecision }) {
           </p>
         </div>
       )}
-      <div style={{ display: 'flex', gap: 14, marginTop: 10 }}>
-        {decision.businessImpact.reviewHorizon && (
+      {decision.businessImpact.reviewHorizon && (
+        <div style={{ marginTop: 8 }}>
           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>
-            Revisión: {decision.businessImpact.reviewHorizon}
+            Revisión de evidencia: {decision.businessImpact.reviewHorizon}
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -199,6 +202,11 @@ export default function Council() {
     })
   }
 
+  function goToNext() {
+    const next = STATIONS[activeIndex + 1]
+    if (next) setActiveStation(next.id)
+  }
+
   return (
     <motion.div
       variants={chamberEnter}
@@ -221,7 +229,7 @@ export default function Council() {
         <motion.div variants={settle}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'baseline', marginBottom: 5 }}>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-              Consejo
+              Sala de Reunión
             </span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>·</span>
             <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', letterSpacing: '0.06em' }}>
@@ -246,7 +254,7 @@ export default function Council() {
               letterSpacing: '-0.005em',
             }}
           >
-            Revisión Estratégica · {activas.length} iniciativa{activas.length !== 1 ? 's' : ''} activa{activas.length !== 1 ? 's' : ''}
+            Revisión Estratégica · {activas.length} activa{activas.length !== 1 ? 's' : ''}
             {resueltas.length > 0 ? ` · ${resueltas.length} resuelta${resueltas.length !== 1 ? 's' : ''}` : ''}
           </h1>
         </motion.div>
@@ -422,44 +430,65 @@ export default function Council() {
                 animate={{ opacity: 1, transition: { duration: 0.25, ease: 'easeOut' } }}
                 exit={{ opacity: 0, transition: { duration: 0.12 } }}
               >
-                {/* En Revisión */}
+                {/* I — Revisión */}
                 {activeStation === 'revision' && (
                   <>
                     {activas.length === 0 ? (
                       <div style={{ padding: '32px 0' }}>
-                        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
-                          No hay iniciativas activas en el sistema. Crea una nueva iniciativa desde el Atrio para comenzar la sesión.
+                        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink-3)', margin: '0 0 16px', lineHeight: 1.6, fontStyle: 'italic' }}>
+                          No hay iniciativas activas. Crea una nueva desde el Dashboard para comenzar la sesión.
                         </p>
                       </div>
                     ) : (
-                      activas.map((d) => <DecisionRevisionCard key={d.id} decision={d} />)
+                      <>
+                        {activas.map((d) => <DecisionRevisionCard key={d.id} decision={d} />)}
+                        <div style={{ padding: '20px 0 28px', display: 'flex', justifyContent: 'flex-end' }}>
+                          <button
+                            onClick={goToNext}
+                            style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 500, color: 'var(--stoa-ink-2)', background: 'none', border: '1px solid var(--stoa-rule-strong)', padding: '8px 20px', cursor: 'pointer', letterSpacing: '0.02em' }}
+                          >
+                            Siguiente: Resueltas →
+                          </button>
+                        </div>
+                      </>
                     )}
                   </>
                 )}
 
-                {/* Resueltas */}
+                {/* II — Resueltas */}
                 {activeStation === 'resueltas' && (
                   <>
                     {resueltas.length === 0 ? (
                       <div style={{ padding: '32px 0' }}>
-                        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
-                          Ninguna decisión resuelta en esta sesión. Las decisiones resueltas desde las Cámaras aparecerán aquí.
+                        <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink-3)', margin: '0 0 16px', lineHeight: 1.6, fontStyle: 'italic' }}>
+                          Ninguna decisión resuelta aún. Se cierran desde la pantalla de cada iniciativa en Decisiones.
                         </p>
                       </div>
                     ) : (
-                      resueltas.map((d) => <DecisionResolvedCard key={d.id} decision={d} />)
+                      <>
+                        {resueltas.map((d) => <DecisionResolvedCard key={d.id} decision={d} />)}
+                      </>
                     )}
+                    <div style={{ padding: '20px 0 28px', display: 'flex', justifyContent: 'flex-end' }}>
+                      <button
+                        onClick={goToNext}
+                        style={{ fontFamily: 'var(--font-sans)', fontSize: 12, fontWeight: 500, color: 'var(--stoa-ink-2)', background: 'none', border: '1px solid var(--stoa-rule-strong)', padding: '8px 20px', cursor: 'pointer', letterSpacing: '0.02em' }}
+                      >
+                        Siguiente: Cierre →
+                      </button>
+                    </div>
                   </>
                 )}
 
-                {/* Cierre */}
+                {/* III — Cierre */}
                 {activeStation === 'cierre' && (
-                  <div style={{ paddingTop: 8, paddingBottom: 32 }}>
-                    {/* Acciones pendientes */}
+                  <div style={{ paddingBottom: 40 }}>
+
+                    {/* Pending conditions */}
                     {pendingConditions.length > 0 && (
                       <div style={{ marginBottom: 28 }}>
                         <p style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, margin: '18px 0 10px' }}>
-                          Condiciones de resolución pendientes · {pendingConditions.length}
+                          Condiciones pendientes · {pendingConditions.length}
                         </p>
                         {pendingConditions.map(({ decision, condition }, i) => (
                           <div key={i} style={{ display: 'flex', gap: 14, padding: '12px 0', borderBottom: '1px solid var(--stoa-rule)', alignItems: 'flex-start' }}>
@@ -506,51 +535,83 @@ export default function Council() {
                       </div>
                     )}
 
-                    {/* Estado si todo OK */}
+                    {/* All clear state */}
                     {pendingConditions.length === 0 && sinResponsable.length === 0 && decisions.length > 0 && (
-                      <div style={{ padding: '18px 0' }}>
+                      <div style={{ padding: '18px 0 12px' }}>
                         <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
-                          Todas las iniciativas tienen responsable asignado y las condiciones de resolución están documentadas.
+                          Todo en orden. Todas las iniciativas tienen responsable y las condiciones de resolución están documentadas.
                         </p>
                       </div>
+                    )}
+
+                    {/* Resumen IA — hero action */}
+                    {decisions.length > 0 && (
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1, transition: { delay: 0.15, duration: 0.4 } }}
+                        style={{ marginTop: pendingConditions.length > 0 || sinResponsable.length > 0 ? 8 : 4, padding: '20px 24px', border: '1px solid var(--stoa-rule-strong)', borderLeft: '3px solid var(--stoa-gold)' }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' as const, gap: 12 }}>
+                          <div>
+                            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.1em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 5 }}>
+                              Resumen ejecutivo · IA
+                            </span>
+                            <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.5 }}>
+                              Genera el acta de esta sesión: iniciativas revisadas, decisiones tomadas, predicciones y próximas acciones.
+                            </p>
+                          </div>
+                          <button
+                            onClick={handleOpenSummary}
+                            style={{
+                              fontFamily: 'var(--font-sans)',
+                              fontSize: 12,
+                              fontWeight: 500,
+                              color: 'var(--stoa-bg)',
+                              backgroundColor: 'var(--stoa-gold)',
+                              border: 'none',
+                              padding: '9px 20px',
+                              cursor: 'pointer',
+                              letterSpacing: '0.02em',
+                              flexShrink: 0,
+                            }}
+                          >
+                            Generar acta →
+                          </button>
+                        </div>
+                      </motion.div>
                     )}
 
                     {decisions.length === 0 && (
                       <div style={{ padding: '18px 0' }}>
                         <p style={{ fontFamily: 'var(--font-serif)', fontSize: 15, color: 'var(--stoa-ink-3)', margin: 0, lineHeight: 1.6, fontStyle: 'italic' }}>
-                          No hay decisiones en el sistema para cerrar.
+                          No hay decisiones en el sistema.
                         </p>
                       </div>
                     )}
 
-                    {/* Registro de sesión */}
+                    {/* Session log */}
                     {decisions.length > 0 && (
                       <motion.div
                         initial={{ opacity: 0 }}
-                        animate={{ opacity: 1, transition: { delay: 0.2, duration: 0.4 } }}
-                        style={{ paddingTop: 20, borderTop: '1px solid var(--stoa-rule)', marginTop: 8 }}
+                        animate={{ opacity: 1, transition: { delay: 0.3, duration: 0.4 } }}
+                        style={{ paddingTop: 20, borderTop: '1px solid var(--stoa-rule)', marginTop: 20 }}
                       >
                         <div style={{ display: 'flex', gap: 8, alignItems: 'baseline' }}>
-                          <div style={{ width: 4, height: 4, borderRadius: '50%', backgroundColor: 'var(--stoa-gold)', flexShrink: 0 }} />
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
-                            Registro de sesión
+                            Registro automático
                           </span>
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)' }}>·</span>
                           <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
                             {sessionRef} · {sessionDate}
                           </span>
                         </div>
-                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '8px 0 0 12px', lineHeight: 1.6 }}>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '6px 0 0', lineHeight: 1.6 }}>
                           {activas.length} iniciativa{activas.length !== 1 ? 's' : ''} en evaluación · {resueltas.length} resuelta{resueltas.length !== 1 ? 's' : ''} · {decisions.length} en el sistema.
-                          Este registro entrará en la Memoria Estratégica al generar el resumen.
                         </p>
                       </motion.div>
                     )}
-                    <div style={{ height: 24 }} />
                   </div>
                 )}
-
-                {activeStation !== 'cierre' && <div style={{ height: 24 }} />}
               </motion.div>
             </AnimatePresence>
           </div>
@@ -588,25 +649,8 @@ export default function Council() {
         </div>
 
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
-          <button
-            onClick={handleOpenSummary}
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 9,
-              color: 'var(--stoa-ink-3)',
-              background: 'none',
-              border: '1px solid var(--stoa-rule)',
-              padding: '3px 10px',
-              cursor: 'pointer',
-              letterSpacing: '0.05em',
-              textTransform: 'uppercase' as const,
-            }}
-          >
-            Generar resumen
-          </button>
           {!isMobile && (
             <>
-              <div style={{ width: 1, height: 10, backgroundColor: 'var(--stoa-rule-strong)' }} />
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', letterSpacing: '0.04em' }}>
                 {sessionRef}
               </span>
@@ -626,10 +670,10 @@ export default function Council() {
           style={{ position: 'fixed', inset: 0, zIndex: 200, backgroundColor: 'rgba(12,12,14,0.88)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}
           onClick={(e) => { if (e.target === e.currentTarget) setShowSummary(false) }}
         >
-          <div style={{ backgroundColor: 'var(--stoa-surface-1)', border: '1px solid var(--stoa-rule-strong)', maxWidth: 620, width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
+          <div style={{ backgroundColor: 'var(--stoa-surface-1)', border: '1px solid var(--stoa-rule-strong)', maxWidth: 640, width: '100%', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
             <div style={{ padding: '16px 24px 12px', borderBottom: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', flexShrink: 0 }}>
               <div>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>Resumen del Consejo</span>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>Acta de sesión</span>
                 <h3 style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 400, color: 'var(--stoa-ink)', margin: '4px 0 0' }}>
                   {sessionRef} · {sessionDate}
                 </h3>
@@ -650,22 +694,22 @@ export default function Council() {
                     opacity: loadingSum ? 0.5 : 1,
                   }}
                 >
-                  {copied ? 'Copiado' : 'Copiar'}
+                  {copied ? 'Copiado ✓' : 'Copiar'}
                 </button>
                 <button onClick={() => setShowSummary(false)} style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)', background: 'none', border: 'none', cursor: 'pointer' }}>
                   Cerrar
                 </button>
               </div>
             </div>
-            <div style={{ padding: '20px 24px', overflowY: 'auto', flex: 1 }}>
+            <div style={{ padding: '24px 28px', overflowY: 'auto', flex: 1 }}>
               {loadingSum ? (
                 <p style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.04em', lineHeight: 1.7 }}>
-                  Generando resumen con IA…
+                  Generando acta con IA…
                 </p>
               ) : (
-                <pre style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-2)', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.7, letterSpacing: '0.01em' }}>
+                <div style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, whiteSpace: 'pre-wrap', lineHeight: 1.75, letterSpacing: '0.01em' }}>
                   {summaryText}
-                </pre>
+                </div>
               )}
             </div>
           </div>
