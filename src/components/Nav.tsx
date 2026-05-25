@@ -2,6 +2,8 @@ import { NavLink, useLocation } from 'react-router-dom'
 import { useIsMobile } from '../hooks/useViewport'
 import { useDecisionsStore } from '../store/decisions'
 import { useOrgStore } from '../store/org'
+import { useAuthStore } from '../store/auth'
+import { SUPABASE_ENABLED } from '../lib/supabase'
 
 const SCREENS = [
   { path: '/',             label: 'Dashboard',     short: 'DASH' },
@@ -17,6 +19,7 @@ export default function Nav() {
   const isMobile = useIsMobile()
   const { openCreateModal, decisions } = useDecisionsStore()
   const { name: orgName, isConfigured, openSetup, openOnboarding } = useOrgStore()
+  const { signOut, user } = useAuthStore()
   const today = new Date()
   const sessionRef = `S-${String(today.getFullYear()).slice(2)}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`
 
@@ -179,6 +182,20 @@ export default function Nav() {
                 {decisions.length} decisión{decisions.length !== 1 ? 'es' : ''}
               </span>
             </button>
+            {SUPABASE_ENABLED && user && (
+              <>
+                <div style={{ width: 1, height: 12, backgroundColor: 'var(--stoa-rule-strong)' }} />
+                <button
+                  onClick={() => signOut()}
+                  title={user.email}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                >
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em' }}>
+                    Salir
+                  </span>
+                </button>
+              </>
+            )}
           </>
         )}
       </div>
