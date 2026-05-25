@@ -110,6 +110,18 @@ export const IFF_DECISIONS: UserDecision[] = [
         responsable: 'Directora de I+D',
       },
     ],
+    actualResults: {
+      registeredAt: '2026-05-15T10:00:00.000Z',
+      retornoReal: 2160000,
+      varianzaPct: -10.0,
+      kpiResults: [
+        { kpiId: 'KPI-001-1', valorAlcanzado: 4.9, deltaRealEuros: 139500 },
+        { kpiId: 'KPI-001-2', valorAlcanzado: 58, deltaRealEuros: 276000 },
+        { kpiId: 'KPI-001-3', valorAlcanzado: 19, deltaRealEuros: 1260000 },
+      ],
+      narrativa: 'El piloto confirmó una reducción del 38% en ciclos de revisión. ROI positivo a 11 meses. La IA amplifica al perfumista, no lo reemplaza. Recomendamos escalar a los 3 centros restantes en H2 2026.',
+      hypothesisStatus: 'confirmada',
+    },
     resolutionConditions: [
       { id: 'C-001', label: 'Proveedor de plataforma IA seleccionado y contratado', owner: 'CTO', due: 'Feb 2026', satisfied: true },
       { id: 'C-002', label: 'Protocolo de validación perfumista–IA definido y aprobado', owner: 'Directora de I+D', due: 'Mar 2026', satisfied: true },
@@ -377,7 +389,7 @@ export const IFF_DECISIONS: UserDecision[] = [
       leadingIndicators: [],
       laggingIndicators: [],
       responsible: 'COO',
-      reviewHorizon: '',
+      reviewHorizon: 'Q2 2026',
       operationalEffect: 'Traslado de 45 científicos de Grasse a Barcelona. Consolidación de equipamiento analítico. El laboratorio de Grasse tiene 80 años de historia institucional.',
       riskOfInaction: 'Estructura de costes insostenible con dos laboratorios en zonas de coste elevado. La eficiencia operativa de Barcelona es un 40% superior.',
       evidenceStatus: 'Sin datos',

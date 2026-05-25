@@ -4,9 +4,9 @@ import { motion } from 'framer-motion'
 import { chamberEnter, settle, deposit, depositItem } from '../lib/motion'
 import SectionHeader from '../components/primitives/SectionHeader'
 import { useIsMobile } from '../hooks/useViewport'
-import { useDecisionsStore, daysActive } from '../store/decisions'
+import { useDecisionsStore, daysActive, reviewHorizonPassed, reviewHorizonDaysLeft } from '../store/decisions'
 import { analizarDecision } from '../lib/ai'
-import type { AIObservation, BusinessCase } from '../types'
+import type { AIObservation, BusinessCase, HypothesisStatus, ActualResults } from '../types'
 
 type VerdictState = 'open' | 'committing' | 'settled'
 
@@ -37,7 +37,7 @@ const statusColor: Record<string, string> = {
 export default function DecisionChamber() {
   const { id } = useParams<{ id: string }>()
   const isMobile = useIsMobile()
-  const { decisions, settleDecision, markConditionSatisfied, addDeliberationEntry, updateDecision } = useDecisionsStore()
+  const { decisions, settleDecision, markConditionSatisfied, addDeliberationEntry, updateDecision, registerActualResults } = useDecisionsStore()
   const decision = decisions.find((d) => d.id === id)
 
   const [verdictState, setVerdictState] = useState<VerdictState>('open')
@@ -63,6 +63,11 @@ export default function DecisionChamber() {
   const [kpiDelta, setKpiDelta] = useState('')
   const [kpiFecha, setKpiFecha] = useState('')
   const [kpiResponsable, setKpiResponsable] = useState('')
+  const [showResultsForm, setShowResultsForm] = useState(false)
+  const [resRetornoReal, setResRetornoReal] = useState('')
+  const [resNarrativa, setResNarrativa] = useState('')
+  const [resHypStatus, setResHypStatus] = useState<HypothesisStatus>('confirmada')
+  const [resKpiValues, setResKpiValues] = useState<Record<string, string>>({})
 
   const isSettled = decision ? (decision.status === 'resuelta' || verdictState === 'settled') : false
   const days = decision ? daysActive(decision.opened) : 0
@@ -187,6 +192,42 @@ export default function DecisionChamber() {
     const updated = (decision!.kpis ?? []).filter(k => k.id !== kpiId)
     updateDecision(decision!.id, { kpis: updated })
     if (editingKpiId === kpiId) setEditingKpiId(null)
+  }
+
+  function openResultsForm() {
+    const ar = decision!.actualResults
+    setResRetornoReal(ar?.retornoReal != null ? String(ar.retornoReal) : '')
+    setResNarrativa(ar?.narrativa ?? decision!.retrospectiva ?? '')
+    setResHypStatus(ar?.hypothesisStatus ?? 'confirmada')
+    const kpiMap: Record<string, string> = {}
+    ;(ar?.kpiResults ?? []).forEach(r => { kpiMap[r.kpiId] = r.valorAlcanzado != null ? String(r.valorAlcanzado) : '' })
+    setResKpiValues(kpiMap)
+    setShowResultsForm(true)
+  }
+
+  function handleSaveResults() {
+    const retornoReal = parseFloat(resRetornoReal) || null
+    const retornoEsperado = decision!.businessCase?.retornoEsperado ?? null
+    const varianzaPct = (retornoReal != null && retornoEsperado != null && retornoEsperado > 0)
+      ? Math.round(((retornoReal - retornoEsperado) / retornoEsperado) * 1000) / 10
+      : null
+    const kpiResults = (decision!.kpis ?? []).map(kpi => {
+      const val = parseFloat(resKpiValues[kpi.id] ?? '') || null
+      const deltaReal = (val != null && kpi.baselineEuroUnidad != null && kpi.baselineValor != null)
+        ? Math.abs(val - kpi.baselineValor) * kpi.baselineEuroUnidad
+        : null
+      return { kpiId: kpi.id, valorAlcanzado: val, deltaRealEuros: deltaReal }
+    })
+    const results: ActualResults = {
+      registeredAt: new Date().toISOString(),
+      retornoReal,
+      varianzaPct,
+      kpiResults,
+      narrativa: resNarrativa.trim(),
+      hypothesisStatus: resHypStatus,
+    }
+    registerActualResults(decision!.id, results)
+    setShowResultsForm(false)
   }
 
   // Shared panel content — rendered inline after deliberation on mobile,
@@ -820,6 +861,231 @@ export default function DecisionChamber() {
               )
             )}
           </motion.div>
+
+          {/* Cierre del ciclo — verification of actual results */}
+          {isSettled && (
+            <motion.div variants={depositItem} style={{ padding: isMobile ? '24px 20px' : '24px 0', borderTop: '1px solid var(--stoa-rule-strong)' }}>
+              {decision.actualResults ? (
+                // ── Results registered ──────────────────────────────────────
+                <div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16, paddingBottom: 10, borderBottom: '1px solid var(--stoa-rule)' }}>
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 10 }}>
+                      <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--stoa-resolve)' }}>
+                        Resultados reales
+                      </span>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.05em' }}>
+                        {(() => {
+                          const d = new Date(decision.actualResults.registeredAt)
+                          return `${d.getDate()}/${d.getMonth()+1}/${d.getFullYear()}`
+                        })()}
+                      </span>
+                    </div>
+                    <button onClick={openResultsForm} style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.04em' }}>
+                      Actualizar
+                    </button>
+                  </div>
+
+                  {/* Financial variance */}
+                  {decision.actualResults.retornoReal != null && decision.businessCase?.retornoEsperado != null && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 1, backgroundColor: 'var(--stoa-rule)', marginBottom: 14 }}>
+                      {[
+                        { label: 'Retorno esperado', value: decision.businessCase.retornoEsperado, color: 'var(--stoa-ink-2)' },
+                        { label: 'Retorno real', value: decision.actualResults.retornoReal, color: 'var(--stoa-resolve)' },
+                        {
+                          label: 'Varianza',
+                          value: null,
+                          pct: decision.actualResults.varianzaPct,
+                          color: (decision.actualResults.varianzaPct ?? 0) >= -10
+                            ? 'var(--stoa-resolve)'
+                            : (decision.actualResults.varianzaPct ?? 0) >= -30
+                            ? 'var(--stoa-amber)'
+                            : 'var(--stoa-critical)',
+                        },
+                      ].map(({ label, value, pct, color }) => (
+                        <div key={label} style={{ backgroundColor: 'var(--stoa-surface-1)', padding: '10px 12px' }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 5 }}>{label}</span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 16, color, fontWeight: 500 }}>
+                            {pct != null
+                              ? `${pct >= 0 ? '+' : ''}${pct}%`
+                              : value != null
+                                ? value >= 1000000
+                                  ? `€${(value/1000000).toFixed(1)}M`
+                                  : `€${(value/1000).toFixed(0)}k`
+                                : '—'
+                            }
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* KPI results vs targets */}
+                  {decision.kpis && decision.actualResults.kpiResults.length > 0 && (
+                    <div style={{ marginBottom: 14 }}>
+                      {decision.kpis.map(kpi => {
+                        const result = decision.actualResults!.kpiResults.find(r => r.kpiId === kpi.id)
+                        if (!result || result.valorAlcanzado == null) return null
+                        const reached = result.valorAlcanzado
+                        const target = kpi.objetivoValor
+                        const baseline = kpi.baselineValor
+                        const improving = target != null && baseline != null ? (target < baseline ? reached <= target : reached >= target) : null
+                        return (
+                          <div key={kpi.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 0', borderBottom: '1px solid var(--stoa-rule)' }}>
+                            <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', flex: 1 }}>{kpi.nombre}</span>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
+                                {kpi.baselineValor} → {kpi.objetivoValor} {kpi.unidad}
+                              </span>
+                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: improving === true ? 'var(--stoa-resolve)' : improving === false ? 'var(--stoa-amber)' : 'var(--stoa-ink-2)', fontWeight: 500 }}>
+                                {reached} {kpi.unidad}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  )}
+
+                  {/* Hypothesis status + narrative */}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: decision.actualResults.narrativa ? 10 : 0 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em' }}>HIPÓTESIS</span>
+                    <span style={{
+                      fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.07em', textTransform: 'uppercase' as const,
+                      color: decision.actualResults.hypothesisStatus === 'confirmada' ? 'var(--stoa-resolve)'
+                        : decision.actualResults.hypothesisStatus === 'refutada' ? 'var(--stoa-amber)'
+                        : 'var(--stoa-ink-2)',
+                      border: `1px solid ${decision.actualResults.hypothesisStatus === 'confirmada' ? 'var(--stoa-resolve)' : decision.actualResults.hypothesisStatus === 'refutada' ? 'var(--stoa-amber)' : 'var(--stoa-rule-strong)'}`,
+                      padding: '2px 8px',
+                    }}>
+                      {decision.actualResults.hypothesisStatus}
+                    </span>
+                  </div>
+                  {decision.actualResults.narrativa && (
+                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.6, borderLeft: '2px solid var(--stoa-resolve)', paddingLeft: 12 }}>
+                      {decision.actualResults.narrativa}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                // ── Pending verification ────────────────────────────────────
+                <div>
+                  <div style={{ marginBottom: 12, paddingBottom: 10, borderBottom: '1px solid var(--stoa-rule)' }}>
+                    <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: reviewHorizonPassed(decision.businessImpact.reviewHorizon) ? 'var(--stoa-amber)' : 'var(--stoa-ink-3)' }}>
+                      Verificar resultados
+                    </span>
+                    {(() => {
+                      const daysLeft = reviewHorizonDaysLeft(decision.businessImpact.reviewHorizon)
+                      if (daysLeft == null) return null
+                      if (daysLeft < 0) return <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', marginLeft: 10, letterSpacing: '0.05em' }}>Horizonte superado hace {Math.abs(daysLeft)}d</span>
+                      if (daysLeft <= 30) return <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', marginLeft: 10, letterSpacing: '0.05em' }}>En {daysLeft} días</span>
+                      return <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', marginLeft: 10, letterSpacing: '0.05em' }}>{decision.businessImpact.reviewHorizon}</span>
+                    })()}
+                  </div>
+                  {!showResultsForm ? (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px', border: `1px dashed ${reviewHorizonPassed(decision.businessImpact.reviewHorizon) ? 'var(--stoa-amber)' : 'var(--stoa-rule-strong)'}` }}>
+                      <div>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: '0 0 3px' }}>¿Qué ocurrió realmente?</p>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: 0 }}>
+                          Retorno esperado: {decision.businessCase?.retornoEsperado != null
+                            ? (decision.businessCase.retornoEsperado >= 1000000
+                              ? `€${(decision.businessCase.retornoEsperado/1000000).toFixed(1)}M/año`
+                              : `€${(decision.businessCase.retornoEsperado/1000).toFixed(0)}k/año`)
+                            : 'no cuantificado'}
+                        </p>
+                      </div>
+                      <button onClick={openResultsForm} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: reviewHorizonPassed(decision.businessImpact.reviewHorizon) ? 'var(--stoa-amber)' : 'var(--stoa-gold)', background: 'none', border: `1px solid ${reviewHorizonPassed(decision.businessImpact.reviewHorizon) ? 'var(--stoa-amber)' : 'var(--stoa-gold)'}`, padding: '6px 14px', cursor: 'pointer', letterSpacing: '0.04em', flexShrink: 0, marginLeft: 16 }}>
+                        Registrar resultados →
+                      </button>
+                    </div>
+                  ) : (
+                    // Results form
+                    <div style={{ border: '1px solid var(--stoa-gold)', padding: '16px', backgroundColor: 'rgba(196,149,42,0.03)' }}>
+                      <div style={{ marginBottom: 12 }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>
+                          Retorno real obtenido (€/año)
+                        </span>
+                        <input
+                          type="number"
+                          value={resRetornoReal}
+                          onChange={e => setResRetornoReal(e.target.value)}
+                          placeholder={decision.businessCase?.retornoEsperado != null ? `Esperado: ${decision.businessCase.retornoEsperado}` : 'Introduce el retorno real en €/año'}
+                          style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule-strong)', padding: '7px 10px', outline: 'none', boxSizing: 'border-box' as const }}
+                        />
+                        {resRetornoReal && decision.businessCase?.retornoEsperado != null && (
+                          <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: (parseFloat(resRetornoReal) / decision.businessCase.retornoEsperado - 1) >= -0.1 ? 'var(--stoa-resolve)' : 'var(--stoa-amber)', margin: '4px 0 0' }}>
+                            Varianza: {((parseFloat(resRetornoReal) / decision.businessCase.retornoEsperado - 1) * 100).toFixed(1)}%
+                          </p>
+                        )}
+                      </div>
+
+                      {/* KPI actual values */}
+                      {(decision.kpis ?? []).length > 0 && (
+                        <div style={{ marginBottom: 12 }}>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 8 }}>
+                            Valores reales alcanzados
+                          </span>
+                          {(decision.kpis ?? []).map(kpi => (
+                            <div key={kpi.id} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', flex: 1, minWidth: 0 }}>{kpi.nombre}</span>
+                              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', flexShrink: 0 }}>Obj: {kpi.objetivoValor} {kpi.unidad}</span>
+                              <input
+                                type="number"
+                                value={resKpiValues[kpi.id] ?? ''}
+                                onChange={e => setResKpiValues(prev => ({ ...prev, [kpi.id]: e.target.value }))}
+                                placeholder="Real"
+                                style={{ width: 80, fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule-strong)', padding: '5px 8px', outline: 'none', flexShrink: 0, textAlign: 'right' as const }}
+                              />
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Hypothesis status */}
+                      <div style={{ marginBottom: 12 }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 6 }}>
+                          ¿La hipótesis se cumplió?
+                        </span>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' as const }}>
+                          {(['confirmada', 'parcialmente confirmada', 'refutada', 'inconclusa'] as HypothesisStatus[]).map(s => (
+                            <button
+                              key={s}
+                              onClick={() => setResHypStatus(s)}
+                              style={{ fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.05em', color: resHypStatus === s ? 'var(--stoa-bg)' : 'var(--stoa-ink-3)', backgroundColor: resHypStatus === s ? (s === 'confirmada' ? 'var(--stoa-resolve)' : s === 'refutada' ? 'var(--stoa-amber)' : 'var(--stoa-gold)') : 'transparent', border: `1px solid ${resHypStatus === s ? (s === 'confirmada' ? 'var(--stoa-resolve)' : s === 'refutada' ? 'var(--stoa-amber)' : 'var(--stoa-gold)') : 'var(--stoa-rule-strong)'}`, padding: '4px 10px', cursor: 'pointer' }}
+                            >
+                              {s}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Narrative */}
+                      <div style={{ marginBottom: 12 }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>
+                          Qué ocurrió · aprendizaje para el portfolio
+                        </span>
+                        <textarea
+                          value={resNarrativa}
+                          onChange={e => setResNarrativa(e.target.value)}
+                          rows={3}
+                          placeholder="Describe brevemente los resultados reales y qué aprendió la organización…"
+                          style={{ width: '100%', fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-rule-strong)', padding: '8px 10px', outline: 'none', resize: 'vertical' as const, lineHeight: 1.5, boxSizing: 'border-box' as const }}
+                        />
+                      </div>
+
+                      <div style={{ display: 'flex', gap: 10 }}>
+                        <button onClick={handleSaveResults} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', background: 'none', border: '1px solid var(--stoa-gold)', padding: '6px 14px', cursor: 'pointer', letterSpacing: '0.04em' }}>
+                          Registrar resultados
+                        </button>
+                        <button onClick={() => setShowResultsForm(false)} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.04em' }}>
+                          Cancelar
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </motion.div>
+          )}
 
           {/* Marco de Impacto — reference zone */}
           <motion.div variants={depositItem} style={{ marginBottom: 32, padding: isMobile ? '28px 20px 0' : '24px 0 0', borderTop: '1px solid var(--stoa-rule-strong)' }}>

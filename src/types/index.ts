@@ -68,6 +68,21 @@ export interface InvestmentKPI {
   responsable: string
 }
 
+export interface KPIResult {
+  kpiId: string
+  valorAlcanzado: number | null
+  deltaRealEuros: number | null
+}
+
+export interface ActualResults {
+  registeredAt: string
+  retornoReal: number | null          // €/año — lo que realmente ocurrió
+  varianzaPct: number | null          // (retornoReal - retornoEsperado) / retornoEsperado × 100
+  kpiResults: KPIResult[]
+  narrativa: string
+  hypothesisStatus: HypothesisStatus
+}
+
 export interface UserDecision {
   id: string
   titulo: string
@@ -81,6 +96,7 @@ export interface UserDecision {
   businessImpact: BusinessImpact
   businessCase?: BusinessCase
   kpis?: InvestmentKPI[]
+  actualResults?: ActualResults
   verdictOptions: string[]
   selectedVerdict: string | null
   prediccion?: string

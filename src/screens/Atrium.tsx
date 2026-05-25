@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { chamberEnter, settle, deposit, depositItem } from '../lib/motion'
 import { useIsMobile } from '../hooks/useViewport'
-import { useDecisionsStore, daysActive } from '../store/decisions'
+import { useDecisionsStore, daysActive, reviewHorizonPassed, reviewHorizonDaysLeft } from '../store/decisions'
 import { useOrgStore } from '../store/org'
 import { generarDiagnosticoPortfolioIA } from '../lib/ai'
 import { IFF_ORG, IFF_DECISIONS } from '../data/iffDemo'
@@ -162,6 +162,17 @@ export default function Atrium() {
   const sortedActive = [...userActive].sort(
     (a, b) => (WEIGHT_SCORE[b.weight] ?? 1) - (WEIGHT_SCORE[a.weight] ?? 1)
   )
+
+  // Decisions resolved but awaiting real-results verification
+  const pendingVerification = userResolved
+    .filter(d => !d.actualResults && d.businessImpact.reviewHorizon)
+    .map(d => {
+      const daysLeft = reviewHorizonDaysLeft(d.businessImpact.reviewHorizon)
+      const passed = reviewHorizonPassed(d.businessImpact.reviewHorizon)
+      return { ...d, _daysLeft: daysLeft, _passed: passed }
+    })
+    .sort((a, b) => (a._daysLeft ?? 9999) - (b._daysLeft ?? 9999))
+    .slice(0, 3)
 
   const today   = new Date()
   const year    = today.getFullYear()
@@ -362,6 +373,61 @@ export default function Atrium() {
                   <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexShrink: 0 }}>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>{daysActive(d.opened)}d</span>
                     <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-gold)' }}>→</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </motion.div>
+        )}
+
+        {/* ── Verificación pendiente ── */}
+        {pendingVerification.length > 0 && (
+          <motion.div variants={settle} style={{ borderBottom: '1px solid var(--stoa-rule)' }}>
+            <div style={{ padding: isMobile ? '12px 20px 8px' : '14px 40px 8px', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.09em', textTransform: 'uppercase' as const }}>
+                Resultados pendientes de verificación
+              </span>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
+                {pendingVerification.length} decisión{pendingVerification.length !== 1 ? 'es' : ''} sin cierre de ciclo
+              </span>
+            </div>
+            {pendingVerification.map(d => (
+              <Link key={d.id} to={`/chamber/${d.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                <div
+                  style={{ padding: isMobile ? '10px 20px' : '10px 40px', borderTop: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p style={{ fontFamily: 'var(--font-serif)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: '0 0 3px', lineHeight: 1.3 }}>
+                      {d.preguntaEstrategica.length > 80 ? d.preguntaEstrategica.slice(0, 80) + '…' : d.preguntaEstrategica}
+                    </p>
+                    <div style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>{d.id}</span>
+                      {d.businessCase?.retornoEsperado != null && (
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)' }}>
+                          {d.businessCase.retornoEsperado >= 1000000
+                            ? `€${(d.businessCase.retornoEsperado/1000000).toFixed(1)}M esperado`
+                            : `€${(d.businessCase.retornoEsperado/1000).toFixed(0)}k esperado`}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div style={{ flexShrink: 0, textAlign: 'right' as const }}>
+                    {d._passed ? (
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.06em', display: 'block' }}>
+                        HORIZONTE SUPERADO
+                      </span>
+                    ) : d._daysLeft != null && d._daysLeft <= 30 ? (
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.06em', display: 'block' }}>
+                        En {d._daysLeft}d
+                      </span>
+                    ) : (
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', display: 'block' }}>
+                        {d.businessImpact.reviewHorizon}
+                      </span>
+                    )}
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-amber)' }}>→</span>
                   </div>
                 </div>
               </Link>
