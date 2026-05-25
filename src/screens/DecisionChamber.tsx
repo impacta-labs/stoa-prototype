@@ -6,7 +6,7 @@ import SectionHeader from '../components/primitives/SectionHeader'
 import { useIsMobile } from '../hooks/useViewport'
 import { useDecisionsStore, daysActive } from '../store/decisions'
 import { analizarDecision } from '../lib/ai'
-import type { AIObservation } from '../types'
+import type { AIObservation, BusinessCase } from '../types'
 
 type VerdictState = 'open' | 'committing' | 'settled'
 
@@ -49,6 +49,11 @@ export default function DecisionChamber() {
   const [editingHypothesis, setEditingHypothesis] = useState(false)
   const [hypothesisText, setHypothesisText] = useState('')
   const [prediccionText, setPrediccionText] = useState('')
+  const [editingBusinessCase, setEditingBusinessCase] = useState(false)
+  const [bcCoste, setBcCoste] = useState('')
+  const [bcInversion, setBcInversion] = useState('')
+  const [bcRetorno, setBcRetorno] = useState('')
+  const [bcConfianza, setBcConfianza] = useState<'Bajo' | 'Medio' | 'Alto'>('Medio')
 
   const isSettled = decision ? (decision.status === 'resuelta' || verdictState === 'settled') : false
   const days = decision ? daysActive(decision.opened) : 0
@@ -103,6 +108,31 @@ export default function DecisionChamber() {
       businessImpact: { ...decision!.businessImpact, hypothesis: hypothesisText },
     })
     setEditingHypothesis(false)
+  }
+
+  function handleSaveBusinessCase() {
+    const coste = parseFloat(bcCoste.replace(/[.,\s]/g, '')) || null
+    const inv = parseFloat(bcInversion.replace(/[.,\s]/g, '')) || null
+    const ret = parseFloat(bcRetorno.replace(/[.,\s]/g, '')) || null
+    const payback = (inv && ret && ret > 0) ? Math.round((inv / (ret / 12)) * 10) / 10 : null
+    const bc: BusinessCase = {
+      costeProblemActual: coste,
+      inversionRequerida: inv,
+      retornoEsperado: ret,
+      paybackMeses: payback,
+      confianza: bcConfianza,
+    }
+    updateDecision(decision!.id, { businessCase: bc })
+    setEditingBusinessCase(false)
+  }
+
+  function openBusinessCaseEditor() {
+    const bc = decision!.businessCase
+    setBcCoste(bc?.costeProblemActual != null ? String(bc.costeProblemActual) : '')
+    setBcInversion(bc?.inversionRequerida != null ? String(bc.inversionRequerida) : '')
+    setBcRetorno(bc?.retornoEsperado != null ? String(bc.retornoEsperado) : '')
+    setBcConfianza(bc?.confianza ?? 'Medio')
+    setEditingBusinessCase(true)
   }
 
   // Shared panel content — rendered inline after deliberation on mobile,
@@ -493,6 +523,122 @@ export default function DecisionChamber() {
               </motion.div>
             </>
           )}
+
+          {/* Caso de Inversión — structured financial case */}
+          <motion.div variants={depositItem} style={{ marginBottom: 0, padding: isMobile ? '24px 20px' : '24px 0', borderTop: '1px solid var(--stoa-rule-strong)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 16, paddingBottom: 10, borderBottom: '1px solid var(--stoa-rule)' }}>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, fontWeight: 500, letterSpacing: '0.07em', textTransform: 'uppercase' as const, color: 'var(--stoa-ink-2)' }}>
+                Caso de Inversión
+              </span>
+              {!isSettled && (
+                <button
+                  onClick={editingBusinessCase ? () => setEditingBusinessCase(false) : openBusinessCaseEditor}
+                  style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', background: 'none', border: 'none', cursor: 'pointer', letterSpacing: '0.04em' }}
+                >
+                  {editingBusinessCase ? 'Cancelar' : (decision.businessCase ? 'Editar' : '+ Completar')}
+                </button>
+              )}
+            </div>
+
+            {editingBusinessCase ? (
+              <div>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12, marginBottom: 12 }}>
+                  {[
+                    { label: 'Coste del problema actual (€/año)', value: bcCoste, set: setBcCoste, hint: 'Lo que cuesta NO actuar' },
+                    { label: 'Inversión requerida (€ total)', value: bcInversion, set: setBcInversion, hint: 'Capex + opex primer año' },
+                    { label: 'Retorno esperado (€/año)', value: bcRetorno, set: setBcRetorno, hint: 'Ahorro o ingreso incremental' },
+                  ].map(({ label, value, set, hint }) => (
+                    <div key={label}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>{label}</span>
+                      <input
+                        type="number"
+                        value={value}
+                        onChange={(e) => set(e.target.value)}
+                        placeholder={hint}
+                        style={{ width: '100%', fontFamily: 'var(--font-mono)', fontSize: 13, color: 'var(--stoa-ink)', backgroundColor: 'var(--stoa-bg)', border: '1px solid var(--stoa-gold)', padding: '7px 10px', outline: 'none', boxSizing: 'border-box' as const }}
+                      />
+                    </div>
+                  ))}
+                  <div>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 4 }}>Nivel de confianza</span>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      {(['Bajo', 'Medio', 'Alto'] as const).map((nivel) => (
+                        <button
+                          key={nivel}
+                          onClick={() => setBcConfianza(nivel)}
+                          style={{ flex: 1, fontFamily: 'var(--font-mono)', fontSize: 10, color: bcConfianza === nivel ? 'var(--stoa-bg)' : 'var(--stoa-ink-3)', backgroundColor: bcConfianza === nivel ? 'var(--stoa-gold)' : 'transparent', border: `1px solid ${bcConfianza === nivel ? 'var(--stoa-gold)' : 'var(--stoa-rule-strong)'}`, padding: '6px 0', cursor: 'pointer', letterSpacing: '0.04em' }}
+                        >
+                          {nivel}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                {bcInversion && bcRetorno && parseFloat(bcRetorno) > 0 && (
+                  <div style={{ padding: '8px 12px', backgroundColor: 'rgba(196, 149, 42, 0.05)', border: '1px solid var(--stoa-rule)', marginBottom: 10 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)' }}>
+                      Payback estimado: {Math.round((parseFloat(bcInversion) / (parseFloat(bcRetorno) / 12)) * 10) / 10} meses
+                    </span>
+                  </div>
+                )}
+                <button onClick={handleSaveBusinessCase} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', background: 'none', border: '1px solid var(--stoa-gold)', padding: '5px 12px', cursor: 'pointer', letterSpacing: '0.04em' }}>
+                  Guardar caso de inversión
+                </button>
+              </div>
+            ) : decision.businessCase ? (
+              <div>
+                <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : '1fr 1fr 1fr 1fr', gap: 1, backgroundColor: 'var(--stoa-rule)', marginBottom: 12 }}>
+                  {[
+                    { label: 'Coste del problema', value: decision.businessCase.costeProblemActual, suffix: '€/año', color: 'var(--stoa-amber)' },
+                    { label: 'Inversión requerida', value: decision.businessCase.inversionRequerida, suffix: '€ total', color: 'var(--stoa-ink-2)' },
+                    { label: 'Retorno esperado', value: decision.businessCase.retornoEsperado, suffix: '€/año', color: 'var(--stoa-resolve)' },
+                    { label: 'Payback', value: decision.businessCase.paybackMeses, suffix: 'meses', color: 'var(--stoa-gold)' },
+                  ].map(({ label, value, suffix, color }) => (
+                    <div key={label} style={{ backgroundColor: 'var(--stoa-surface-1)', padding: '12px 14px' }}>
+                      <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--stoa-ink-3)', letterSpacing: '0.07em', textTransform: 'uppercase' as const, display: 'block', marginBottom: 6 }}>{label}</span>
+                      {value != null ? (
+                        <>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: isMobile ? 15 : 18, color, fontWeight: 500, display: 'block', lineHeight: 1.1 }}>
+                            {value >= 1000000
+                              ? `${(value / 1000000).toFixed(1)}M`
+                              : value >= 1000
+                              ? `${(value / 1000).toFixed(0)}k`
+                              : value}
+                          </span>
+                          <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', marginTop: 2, display: 'block' }}>{suffix}</span>
+                        </>
+                      ) : (
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>—</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', letterSpacing: '0.06em' }}>CONFIANZA</span>
+                  <span style={{
+                    fontFamily: 'var(--font-mono)', fontSize: 9, letterSpacing: '0.08em',
+                    color: decision.businessCase.confianza === 'Alto' ? 'var(--stoa-resolve)' : decision.businessCase.confianza === 'Medio' ? 'var(--stoa-gold)' : 'var(--stoa-amber)',
+                    border: `1px solid ${decision.businessCase.confianza === 'Alto' ? 'var(--stoa-resolve)' : decision.businessCase.confianza === 'Medio' ? 'var(--stoa-gold)' : 'var(--stoa-amber)'}`,
+                    padding: '2px 8px',
+                  }}>
+                    {decision.businessCase.confianza.toUpperCase()}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: '16px', border: '1px dashed var(--stoa-rule-strong)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: '0 0 3px' }}>Caso de inversión no completado</p>
+                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: 0 }}>Añade los números financieros para llevar esto a tu comité de dirección.</p>
+                </div>
+                {!isSettled && (
+                  <button onClick={openBusinessCaseEditor} style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-gold)', background: 'none', border: '1px solid var(--stoa-gold)', padding: '6px 14px', cursor: 'pointer', letterSpacing: '0.04em', flexShrink: 0, marginLeft: 16 }}>
+                    + Completar
+                  </button>
+                )}
+              </div>
+            )}
+          </motion.div>
 
           {/* Marco de Impacto — reference zone */}
           <motion.div variants={depositItem} style={{ marginBottom: 32, padding: isMobile ? '28px 20px 0' : '24px 0 0', borderTop: '1px solid var(--stoa-rule-strong)' }}>

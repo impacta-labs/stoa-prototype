@@ -46,6 +46,27 @@ export interface AIObservation {
   text: string
 }
 
+export type ConfianzaNivel = 'Bajo' | 'Medio' | 'Alto'
+
+export interface BusinessCase {
+  costeProblemActual: number | null   // €/año — coste de no actuar
+  inversionRequerida: number | null   // € total capex + opex
+  retornoEsperado: number | null      // €/año — ahorro o ingreso incremental
+  paybackMeses: number | null         // auto-calculated
+  confianza: ConfianzaNivel
+}
+
+export interface InvestmentKPI {
+  id: string
+  nombre: string
+  baselineValor: number | null
+  baselineEuroUnidad: number | null   // € por unidad del KPI
+  objetivoValor: number | null
+  deltaEuros: number | null           // auto-calculated
+  fechaMedicion: string
+  responsable: string
+}
+
 export interface UserDecision {
   id: string
   titulo: string
@@ -57,6 +78,8 @@ export interface UserDecision {
   opened: string
   status: DecisionStatus
   businessImpact: BusinessImpact
+  businessCase?: BusinessCase
+  kpis?: InvestmentKPI[]
   verdictOptions: string[]
   selectedVerdict: string | null
   prediccion?: string

@@ -1,6 +1,7 @@
 import type {
   TipoInnovacion,
   BusinessImpact,
+  BusinessCase,
   UserDecision,
   ResolutionCondition,
   AIObservation,
@@ -478,6 +479,17 @@ export async function generarDecisionIA(params: {
       evidenceStatus: 'Sin datos',
     }
 
+    const ci = data.casoInversion
+    const businessCase: BusinessCase | undefined = ci ? {
+      costeProblemActual: typeof ci.costeProblemActual === 'number' ? ci.costeProblemActual : null,
+      inversionRequerida: typeof ci.inversionRequerida === 'number' ? ci.inversionRequerida : null,
+      retornoEsperado: typeof ci.retornoEsperado === 'number' ? ci.retornoEsperado : null,
+      paybackMeses: (typeof ci.inversionRequerida === 'number' && typeof ci.retornoEsperado === 'number' && ci.retornoEsperado > 0)
+        ? Math.round((ci.inversionRequerida / (ci.retornoEsperado / 12)) * 10) / 10
+        : null,
+      confianza: ['Bajo', 'Medio', 'Alto'].includes(ci.confianza) ? ci.confianza : 'Medio',
+    } : undefined
+
     return {
       id,
       titulo,
@@ -489,6 +501,7 @@ export async function generarDecisionIA(params: {
       opened: new Date().toISOString(),
       status: 'evaluacion',
       businessImpact,
+      businessCase,
       verdictOptions: VERDICT_OPTIONS[tipo] ?? ['Proceder', 'Aplazar', 'Replantear'],
       selectedVerdict: null,
       settledAt: null,

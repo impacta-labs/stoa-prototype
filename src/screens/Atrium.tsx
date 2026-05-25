@@ -104,10 +104,20 @@ export default function Atrium() {
 
   // Enrich each decision with parsed financial impact
   const enriched: DEnriched[] = decisions.map(d => {
-    // Priority: plLever (executive P&L estimate) → hypothesis → prediccion
-    const fi = parseFinancialImpact(d.businessImpact.plLever || '')
-            || parseFinancialImpact(d.businessImpact.hypothesis || '')
-            || parseFinancialImpact(d.prediccion || '')
+    // Priority: structured businessCase.retornoEsperado → plLever text → hypothesis text → prediccion text
+    const structuredReturn = d.businessCase?.retornoEsperado
+    const fi: { display: string; minValue: number } | null = structuredReturn && structuredReturn > 0
+      ? {
+          display: structuredReturn >= 1000000
+            ? `€${(structuredReturn / 1000000).toFixed(1)}M`
+            : `€${(structuredReturn / 1000).toFixed(0)}k`,
+          minValue: structuredReturn / 1000000,
+        }
+      : (
+          parseFinancialImpact(d.businessImpact.plLever || '')
+          || parseFinancialImpact(d.businessImpact.hypothesis || '')
+          || parseFinancialImpact(d.prediccion || '')
+        )
     // Confirmed: hypothesis validated → use fi value; else parse retrospectiva
     const ri = d.hypothesisStatus === 'confirmada'
       ? (parseFinancialImpact(d.retrospectiva || '') || fi)

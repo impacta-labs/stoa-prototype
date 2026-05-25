@@ -68,6 +68,13 @@ export const IFF_DECISIONS: UserDecision[] = [
         timestamp: '2026-02-10T11:15:00.000Z',
       },
     ],
+    businessCase: {
+      costeProblemActual: 4800000,
+      inversionRequerida: 850000,
+      retornoEsperado: 2400000,
+      paybackMeses: 4.3,
+      confianza: 'Alto',
+    },
     resolutionConditions: [
       { id: 'C-001', label: 'Proveedor de plataforma IA seleccionado y contratado', owner: 'CTO', due: 'Feb 2026', satisfied: true },
       { id: 'C-002', label: 'Protocolo de validación perfumista–IA definido y aprobado', owner: 'Directora de I+D', due: 'Mar 2026', satisfied: true },
@@ -130,6 +137,13 @@ export const IFF_DECISIONS: UserDecision[] = [
         timestamp: '2026-03-15T14:30:00.000Z',
       },
     ],
+    businessCase: {
+      costeProblemActual: 25000000,
+      inversionRequerida: 3200000,
+      retornoEsperado: 25000000,
+      paybackMeses: 1.5,
+      confianza: 'Medio',
+    },
     resolutionConditions: [
       { id: 'C-004', label: 'Mapa de asignación científico–cliente completado para los 20 cuentas', owner: 'Chief Science Officer', due: 'May 2026', satisfied: true },
       { id: 'C-005', label: 'Plan de comunicación interna aprobado y calendario definido', owner: 'CHRO', due: 'Abr 2026', satisfied: true },
@@ -165,6 +179,13 @@ export const IFF_DECISIONS: UserDecision[] = [
       operationalEffect: 'Creación de una unidad de negocio nueva (IP Licensing). Los activos actuales generan valor sin consumir capacidad de producción ni canales de venta existentes.',
       riskOfInaction: 'Competidores desarrollan soluciones alternativas con tecnologías similares, erosionando nuestra posición en ciertos activos de aroma. El valor de la IP no capturada se deprecia con el tiempo.',
       evidenceStatus: 'Acumulando',
+    },
+    businessCase: {
+      costeProblemActual: 0,
+      inversionRequerida: 2800000,
+      retornoEsperado: 35000000,
+      paybackMeses: 1.0,
+      confianza: 'Medio',
     },
     verdictOptions: [
       'Sí — crear IP Licensing entity en 2026',
