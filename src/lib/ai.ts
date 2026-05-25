@@ -622,3 +622,52 @@ export async function generarDiagnosticoPortfolioIA(
     return `Portfolio de ${orgName || 'la organización'}: ${activas.length} iniciativa${activas.length !== 1 ? 's' : ''} activa${activas.length !== 1 ? 's' : ''}, ${resueltas.length} resuelta${resueltas.length !== 1 ? 's' : ''}. Registra más deliberaciones para obtener un diagnóstico completo.`
   }
 }
+
+// ── IA presionadora: cuestiona los supuestos financieros de una decisión ──────
+
+export async function challengeDecisionIA(
+  decision: UserDecision,
+  orgName?: string
+): Promise<AIObservation[]> {
+  try {
+    const res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'challengeDecision',
+        params: {
+          titulo: decision.titulo,
+          tipo: decision.tipoInnovacion,
+          orgName: orgName || ORG,
+          businessCase: decision.businessCase,
+          kpis: decision.kpis ?? [],
+          hypothesis: decision.businessImpact.hypothesis,
+          riskOfInaction: decision.businessImpact.riskOfInaction,
+        },
+      }),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    const { data } = await res.json()
+    if (Array.isArray(data?.observaciones)) {
+      return data.observaciones.map((o: any) => ({
+        type: mapObsType(o.tipo),
+        text: o.texto ?? '',
+      }))
+    }
+    return analizarDecision(decision)
+  } catch {
+    return analizarDecision(decision)
+  }
+}
+
+function mapObsType(tipo: string): AIObservation['type'] {
+  const map: Record<string, AIObservation['type']> = {
+    'Riesgo': 'Riesgo',
+    'Pregunta pendiente': 'Pregunta pendiente',
+    'Recomendación': 'Recomendación',
+    'Observación': 'Observación',
+    'Señal': 'Señal',
+    'Indicador ausente': 'Indicador ausente',
+  }
+  return map[tipo] ?? 'Observación'
+}

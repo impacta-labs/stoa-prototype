@@ -91,36 +91,108 @@ export default async function handler(req: any, res: any) {
         .map(([tipo, n]) => `${tipo}: ${n}`)
         .join(', ')
 
+      // Aggregate financial data from structured business cases
+      const totalRetornoEsperado = activas.reduce((s: number, d: any) => s + (d.businessCase?.retornoEsperado ?? 0), 0)
+      const totalInversion = activas.reduce((s: number, d: any) => s + (d.businessCase?.inversionRequerida ?? 0), 0)
+      const sinCasoInversion = activas.filter((d: any) => !d.businessCase).length
+      const costInaccionTotal = activas.reduce((s: number, d: any) => s + (d.businessCase?.costeProblemActual ?? 0), 0)
+      const activasFinanciero = activas.map((d: any) =>
+        `"${d.titulo}" (${d.weight}) — retorno esperado: ${d.businessCase?.retornoEsperado ? `€${(d.businessCase.retornoEsperado/1000).toFixed(0)}k/año` : 'no cuantificado'} | payback: ${d.businessCase?.paybackMeses ?? '?'}m | confianza: ${d.businessCase?.confianza ?? '?'}`
+      ).join('\n')
+
       const message = await client.messages.create({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 600,
+        max_tokens: 700,
         messages: [
           {
             role: 'user',
-            content: `Eres un asesor estratégico experto en innovación corporativa analizando el portfolio de decisiones de ${orgName}${sector ? ` (${sector})` : ''}.
+            content: `Eres el CFO y asesor estratégico de ${orgName}${sector ? ` (${sector})` : ''}. Analiza el portfolio de decisiones de innovación con enfoque en impacto financiero.
 
 Portfolio actual:
-- Total decisiones: ${decisions.length}
-- Activas: ${activas.length} (en evaluación o deliberación)
-- Resueltas: ${resueltas.length}
+- Total decisiones: ${decisions.length} (${activas.length} activas, ${resueltas.length} resueltas)
+- Retorno esperado total portfolio activo: €${(totalRetornoEsperado/1000).toFixed(0)}k/año
+- Inversión total comprometida: €${(totalInversion/1000).toFixed(0)}k
+- Coste inacción total: €${(costInaccionTotal/1000).toFixed(0)}k/año
+- Sin caso de inversión estructurado: ${sinCasoInversion}/${activas.length} iniciativas activas
 - Con hipótesis medible: ${conHipotesis}/${decisions.length}
-- Con predicción comprometida: ${conPrediccion}/${resueltas.length}
 - Tipos de innovación: ${tiposResumen || 'Sin datos'}
-- Decisiones activas: ${activas.map((d: any) => `"${d.titulo}" (${d.weight}, ${d.owner || 'sin responsable'})`).join('; ') || 'Ninguna'}
 
-Escribe un diagnóstico estratégico del portfolio en español (150-200 palabras) que:
-1. Evalúe el balance del portfolio (¿hay concentración excesiva en algún tipo?)
-2. Identifique el riesgo más urgente (decisión que necesita atención inmediata)
-3. Señale la oportunidad más relevante
-4. Proponga la siguiente acción concreta para el equipo
+Iniciativas activas con detalle financiero:
+${activasFinanciero || 'Ninguna'}
 
-Tono: asesor estratégico senior. Directo. Sin rodeos. Sin introducción genérica.`,
+Escribe el diagnóstico en español (150-200 palabras):
+1. Qué dice el portfolio sobre la capacidad de la organización para innovar con retorno medible (menciona los €)
+2. La decisión que más riesgo representa si no se resuelve pronto (con cifra de coste de inacción si disponible)
+3. La oportunidad financiera más relevante del portfolio
+4. La única acción concreta que el equipo directivo debe tomar esta semana
+
+Tono: CFO que habla a su board. Sin rodeos. Sin adornos. Con números.`,
           },
         ],
       })
 
       const text = message.content[0].type === 'text' ? message.content[0].text : ''
       return res.json({ success: true, data: text })
+    }
+
+    if (action === 'challengeDecision') {
+      const { titulo, tipo, orgName = 'la organización', businessCase, kpis = [], hypothesis, riskOfInaction } = params
+
+      const bcLines = businessCase ? [
+        `Coste del problema actual: €${businessCase.costeProblemActual?.toLocaleString('es') ?? 'no definido'}/año`,
+        `Inversión requerida: €${businessCase.inversionRequerida?.toLocaleString('es') ?? 'no definida'} total`,
+        `Retorno esperado: €${businessCase.retornoEsperado?.toLocaleString('es') ?? 'no definido'}/año`,
+        `Payback estimado: ${businessCase.paybackMeses ?? '?'} meses`,
+        `Confianza: ${businessCase.confianza ?? 'no indicada'}`,
+      ].join('\n') : 'Caso de inversión no completado.'
+
+      const kpiLines = kpis.length > 0
+        ? kpis.map((k: any) =>
+            `· ${k.nombre}: ${k.baselineValor} → ${k.objetivoValor} ${k.unidad} | €${k.baselineEuroUnidad?.toLocaleString('es') ?? '?'}/unidad | Delta: €${k.deltaEuros?.toLocaleString('es') ?? '?'}`
+          ).join('\n')
+        : 'Sin KPIs definidos.'
+
+      const costInaction = businessCase?.costeProblemActual
+        ? `€${Math.round(businessCase.costeProblemActual / 12).toLocaleString('es')}/mes de coste de inacción (€${Math.round(businessCase.costeProblemActual / 52).toLocaleString('es')}/semana)`
+        : businessCase?.retornoEsperado
+        ? `€${Math.round(businessCase.retornoEsperado / 12).toLocaleString('es')}/mes de retorno diferido por cada mes que no se actúa`
+        : null
+
+      const message = await client.messages.create({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 900,
+        messages: [
+          {
+            role: 'user',
+            content: `Eres el CFO interno de ${orgName}. Tu trabajo es cuestionar supuestos financieros ANTES de que lleguen al comité de dirección. No eres amable — eres riguroso.
+
+Decisión: "${titulo}" (${tipo})
+Hipótesis: ${hypothesis || 'No definida'}
+
+Caso de inversión:
+${bcLines}
+
+KPIs con puente financiero:
+${kpiLines}
+
+Riesgo de no actuar: ${riskOfInaction || 'No definido'}
+${costInaction ? `\nCoste calculado de inacción: ${costInaction}` : ''}
+
+Genera exactamente 4 observaciones como CFO. Para CADA UNA:
+- Sé específico: referencia los números concretos del caso
+- No hagas preguntas genéricas — pregunta algo que el director debe poder responder antes de ir al board
+- Alterna tipos: combina 'Riesgo', 'Pregunta pendiente', y 'Recomendación'
+- Máximo 2 frases por observación. Directo. Sin introducción.
+
+Responde SOLO con JSON válido:
+{"observaciones":[{"tipo":"Riesgo","texto":"..."},{"tipo":"Pregunta pendiente","texto":"..."},{"tipo":"Recomendación","texto":"..."},{"tipo":"Pregunta pendiente","texto":"..."}]}`,
+          },
+        ],
+      })
+
+      const text = message.content[0].type === 'text' ? message.content[0].text : ''
+      const data = extractJSON(text)
+      return res.json({ success: true, data })
     }
 
     return res.status(400).json({ error: 'Unknown action' })

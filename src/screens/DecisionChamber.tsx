@@ -5,7 +5,7 @@ import { chamberEnter, settle, deposit, depositItem } from '../lib/motion'
 import SectionHeader from '../components/primitives/SectionHeader'
 import { useIsMobile } from '../hooks/useViewport'
 import { useDecisionsStore, daysActive, reviewHorizonPassed, reviewHorizonDaysLeft } from '../store/decisions'
-import { analizarDecision } from '../lib/ai'
+import { challengeDecisionIA } from '../lib/ai'
 import type { AIObservation, BusinessCase, HypothesisStatus, ActualResults } from '../types'
 
 type VerdictState = 'open' | 'committing' | 'settled'
@@ -44,6 +44,7 @@ export default function DecisionChamber() {
   const [selectedVerdict, setSelectedVerdict] = useState('')
   const [showAnalysis, setShowAnalysis] = useState(false)
   const [analysis, setAnalysis] = useState<AIObservation[]>([])
+  const [analysisLoading, setAnalysisLoading] = useState(false)
   const [deliberationText, setDeliberationText] = useState('')
   const [deliberationParticipant, setDeliberationParticipant] = useState('')
   const [editingHypothesis, setEditingHypothesis] = useState(false)
@@ -89,10 +90,14 @@ export default function DecisionChamber() {
     )
   }
 
-  function handleAnalyze() {
-    const obs = analizarDecision(decision!)
-    setAnalysis(obs)
+  async function handleAnalyze() {
+    if (analysisLoading) return
+    setAnalysisLoading(true)
     setShowAnalysis(true)
+    setAnalysis([])
+    const obs = await challengeDecisionIA(decision!)
+    setAnalysis(obs)
+    setAnalysisLoading(false)
   }
 
   function handleCommitVerdict() {
@@ -1180,38 +1185,89 @@ export default function DecisionChamber() {
             </div>
           </motion.div>
 
-          {/* AI Analysis */}
+          {/* IA Presionadora */}
           <motion.div variants={depositItem} style={{ marginBottom: 32 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: showAnalysis ? 14 : 0 }}>
-              <SectionHeader label="Análisis del Sistema" />
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: showAnalysis ? 14 : 0, paddingBottom: showAnalysis ? 10 : 0, borderBottom: showAnalysis ? '1px solid var(--stoa-rule)' : undefined }}>
+              <div>
+                <SectionHeader label="IA Presionadora" />
+                {!showAnalysis && (
+                  <p style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)', margin: '4px 0 0', lineHeight: 1.4 }}>
+                    Cuestiona supuestos financieros antes del comité de dirección
+                  </p>
+                )}
+              </div>
               <button
                 onClick={handleAnalyze}
+                disabled={analysisLoading}
                 style={{
                   fontFamily: 'var(--font-mono)',
                   fontSize: 10,
-                  color: 'var(--stoa-ink-3)',
+                  color: analysisLoading ? 'var(--stoa-ink-3)' : 'var(--stoa-gold)',
                   background: 'none',
-                  border: '1px solid var(--stoa-rule)',
-                  padding: '4px 10px',
-                  cursor: 'pointer',
+                  border: `1px solid ${analysisLoading ? 'var(--stoa-rule)' : 'var(--stoa-gold)'}`,
+                  padding: '5px 12px',
+                  cursor: analysisLoading ? 'default' : 'pointer',
                   letterSpacing: '0.04em',
+                  flexShrink: 0,
                 }}
               >
-                Analizar decisión
+                {analysisLoading ? 'Analizando…' : showAnalysis ? 'Reanalizar' : 'Presionar supuestos →'}
               </button>
             </div>
+
             {showAnalysis && (
-              <div style={{ marginTop: 14 }}>
-                {analysis.map((obs, i) => (
-                  <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 0', borderBottom: i < analysis.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
-                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: observationColor[obs.type], letterSpacing: '0.07em', textTransform: 'uppercase' as const, flexShrink: 0, paddingTop: 2, minWidth: 100 }}>
-                      {obs.type}
-                    </span>
-                    <p style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.55 }}>
-                      {obs.text}
+              <div>
+                {/* Cost of inaction — always show if we have numbers */}
+                {(() => {
+                  const bc = decision.businessCase
+                  const costPerMonth = bc?.costeProblemActual
+                    ? Math.round(bc.costeProblemActual / 12)
+                    : bc?.retornoEsperado
+                    ? Math.round(bc.retornoEsperado / 12)
+                    : null
+                  if (!costPerMonth) return null
+                  const label = bc?.costeProblemActual ? 'Coste de inacción' : 'Retorno diferido por mes'
+                  return (
+                    <div style={{ padding: '12px 14px', marginBottom: 14, backgroundColor: 'rgba(181,98,26,0.06)', borderLeft: '3px solid var(--stoa-amber)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
+                      <span style={{ fontFamily: 'var(--font-sans)', fontSize: 12, color: 'var(--stoa-ink-2)' }}>{label}</span>
+                      <div style={{ textAlign: 'right' as const }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 16, color: 'var(--stoa-amber)', fontWeight: 500, display: 'block' }}>
+                          {costPerMonth >= 1000000
+                            ? `€${(costPerMonth/1000000).toFixed(2)}M`
+                            : costPerMonth >= 1000
+                            ? `€${(costPerMonth/1000).toFixed(0)}k`
+                            : `€${costPerMonth}`}
+                          <span style={{ fontSize: 10, fontWeight: 400 }}>/mes</span>
+                        </span>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>
+                          €{Math.round(costPerMonth / 4.3).toLocaleString('es')}/semana
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })()}
+
+                {/* Observations */}
+                {analysisLoading ? (
+                  <div style={{ padding: '20px 0' }}>
+                    <p style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', margin: 0, letterSpacing: '0.05em' }}>
+                      Leyendo supuestos financieros…
                     </p>
                   </div>
-                ))}
+                ) : (
+                  <div>
+                    {analysis.map((obs, i) => (
+                      <div key={i} style={{ display: 'flex', gap: 12, padding: '12px 0', borderBottom: i < analysis.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
+                        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: observationColor[obs.type], letterSpacing: '0.07em', textTransform: 'uppercase' as const, flexShrink: 0, paddingTop: 2, minWidth: 110 }}>
+                          {obs.type}
+                        </span>
+                        <p style={{ fontFamily: 'var(--font-sans)', fontSize: 13, color: 'var(--stoa-ink-2)', margin: 0, lineHeight: 1.6 }}>
+                          {obs.text}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </motion.div>
