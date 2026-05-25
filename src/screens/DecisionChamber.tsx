@@ -446,9 +446,14 @@ export default function DecisionChamber() {
               <span style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--stoa-ink-3)', display: 'block', marginBottom: 8, letterSpacing: '0.04em' }}>
                 {decision.id} · {days}d activa · {decision.deadline}
               </span>
-              <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 400, color: 'var(--stoa-ink)', margin: 0, lineHeight: 1.3 }}>
+              <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 17, fontWeight: 400, color: 'var(--stoa-ink)', margin: '0 0 12px', lineHeight: 1.3 }}>
                 {decision.preguntaEstrategica}
               </h1>
+              <Link to={`/chamber/${decision.id}/export`} style={{ textDecoration: 'none', display: 'inline-block' }}>
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.07em', border: '1px solid var(--stoa-gold-muted)', padding: '4px 12px', textTransform: 'uppercase' as const }}>
+                  Exportar para comité →
+                </span>
+              </Link>
             </>
           ) : (
             <>
