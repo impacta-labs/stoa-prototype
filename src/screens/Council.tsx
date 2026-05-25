@@ -168,7 +168,10 @@ export default function Council() {
   const { decisions } = useDecisionsStore()
   const { name: orgName } = useOrgStore()
 
-  const activas = decisions.filter((d) => d.status === 'evaluacion' || d.status === 'deliberando')
+  const WEIGHT_ORDER: Record<string, number> = { 'Crítica': 4, 'Mayor': 3, 'Significativa': 2, 'Menor': 1 }
+  const activas = decisions
+    .filter((d) => d.status === 'evaluacion' || d.status === 'deliberando')
+    .sort((a, b) => (WEIGHT_ORDER[b.weight] ?? 1) - (WEIGHT_ORDER[a.weight] ?? 1))
   const resueltas = decisions.filter((d) => d.status === 'resuelta')
 
   const today = new Date()

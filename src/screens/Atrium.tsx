@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { chamberEnter, settle, deposit, depositItem } from '../lib/motion'
 import { useIsMobile } from '../hooks/useViewport'
-import { useDecisionsStore } from '../store/decisions'
+import { useDecisionsStore, daysActive } from '../store/decisions'
 import { useOrgStore } from '../store/org'
 import { generarDiagnosticoPortfolioIA } from '../lib/ai'
 import { IFF_ORG, IFF_DECISIONS } from '../data/iffDemo'
@@ -135,9 +135,22 @@ export default function Atrium() {
   })
   const sortedGroups = Object.entries(plGroups).sort((a, b) => b[1].groupMin - a[1].groupMin)
 
-  // Alert strip
-  const sinAterrizar = userActive.filter(
-    d => !d.businessImpact.leadingIndicators.length || !d.businessImpact.hypothesis?.trim() || !d.owner
+  // Strategic focus — surfaces decisions needing attention before they become urgent
+  const WEIGHT_SCORE: Record<string, number> = { 'Crítica': 4, 'Mayor': 3, 'Significativa': 2, 'Menor': 1 }
+  const focoItems = [...userActive]
+    .map(d => {
+      const ws = WEIGHT_SCORE[d.weight] ?? 1
+      const days = daysActive(d.opened)
+      const entries = d.deliberationEntries.length
+      const missingData = (!d.owner ? 1.3 : 1) * (!d.businessImpact.hypothesis?.trim() ? 1.2 : 1)
+      return { ...d, _score: ws * (days / Math.max(1, entries * 2 + 1)) * missingData }
+    })
+    .sort((a, b) => b._score - a._score)
+    .filter(d => d._score > 2 || d.weight === 'Crítica')
+    .slice(0, 3)
+
+  const sortedActive = [...userActive].sort(
+    (a, b) => (WEIGHT_SCORE[b.weight] ?? 1) - (WEIGHT_SCORE[a.weight] ?? 1)
   )
 
   const today   = new Date()
@@ -303,16 +316,44 @@ export default function Atrium() {
           </div>
         </motion.div>
 
-        {/* ── Alertas ── */}
-        {sinAterrizar.length > 0 && (
-          <motion.div variants={settle} style={{ padding: isMobile ? '10px 20px' : '10px 40px', borderBottom: '1px solid var(--stoa-rule)', backgroundColor: 'rgba(181, 98, 26, 0.04)', display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' as const }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-amber)', letterSpacing: '0.1em', textTransform: 'uppercase' as const, flexShrink: 0 }}>Requieren atención</span>
-            {sinAterrizar.map(d => (
-              <Link key={d.id} to={`/chamber/${d.id}`} style={{ textDecoration: 'none' }}>
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-amber)' }}>{d.titulo}</span>
-                <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)', marginLeft: 6 }}>
-                  {!d.owner ? '· sin responsable' : !d.businessImpact.leadingIndicators.length ? '· sin indicadores' : '· hipótesis incompleta'}
+        {/* ── Foco Estratégico ── */}
+        {userActive.length > 0 && (
+          <motion.div variants={settle} style={{ borderBottom: '1px solid var(--stoa-rule)', borderLeft: '3px solid var(--stoa-gold)', backgroundColor: 'rgba(196, 149, 42, 0.03)' }}>
+            <div style={{ padding: isMobile ? '10px 20px 8px' : '10px 40px 8px', display: 'flex', alignItems: 'baseline', gap: 14 }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-gold)', letterSpacing: '0.1em', textTransform: 'uppercase' as const, flexShrink: 0 }}>
+                Foco estratégico
+              </span>
+              {focoItems.length === 0 ? (
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-resolve)' }}>
+                  · Todas las decisiones tienen actividad reciente
                 </span>
+              ) : (
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: 11, color: 'var(--stoa-ink-3)' }}>
+                  · Requieren deliberación activa antes de volverse urgentes
+                </span>
+              )}
+            </div>
+            {focoItems.map(d => (
+              <Link key={d.id} to={`/chamber/${d.id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                <div
+                  style={{ padding: isMobile ? '8px 20px' : '8px 40px', borderTop: '1px solid var(--stoa-rule)', display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', gap: 12 }}
+                  onMouseEnter={e => (e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.02)')}
+                  onMouseLeave={e => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flex: 1, minWidth: 0 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: weightColor[d.weight] || 'var(--stoa-ink-3)', letterSpacing: '0.08em', textTransform: 'uppercase' as const, flexShrink: 0 }}>
+                      {d.weight}
+                    </span>
+                    <span style={{ fontFamily: 'var(--font-serif)', fontSize: isMobile ? 12 : 13, color: 'var(--stoa-ink)', lineHeight: 1.3 }}>
+                      {d.preguntaEstrategica.length > (isMobile ? 60 : 90) ? d.preguntaEstrategica.slice(0, isMobile ? 60 : 90) + '…' : d.preguntaEstrategica}
+                    </span>
+                    {!d.owner && <span style={{ fontFamily: 'var(--font-mono)', fontSize: 8, color: 'var(--stoa-amber)', flexShrink: 0 }}>· sin responsable</span>}
+                  </div>
+                  <div style={{ display: 'flex', gap: 10, alignItems: 'baseline', flexShrink: 0 }}>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 9, color: 'var(--stoa-ink-3)' }}>{daysActive(d.opened)}d</span>
+                    <span style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--stoa-gold)' }}>→</span>
+                  </div>
+                </div>
               </Link>
             ))}
           </motion.div>
@@ -494,10 +535,10 @@ export default function Atrium() {
                 </button>
               </motion.div>
             ) : (
-              userActive.map((d, i) => (
+              sortedActive.map((d, i) => (
                 <motion.div key={d.id} variants={depositItem}>
                   <Link to={`/chamber/${d.id}`} style={{ textDecoration: 'none' }}>
-                    <div style={{ padding: '12px 0', borderBottom: i < userActive.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
+                    <div style={{ padding: '12px 0', borderBottom: i < sortedActive.length - 1 ? '1px solid var(--stoa-rule)' : undefined }}>
                       <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10, marginBottom: 5 }}>
                         <div style={{ width: 3, height: 3, borderRadius: '50%', backgroundColor: statusColor[d.status] || 'var(--stoa-ink-3)', marginTop: 7, flexShrink: 0 }} />
                         <div style={{ flex: 1, minWidth: 0 }}>

@@ -47,7 +47,9 @@ export default function Chamber() {
   const { decisions, openCreateModal } = useDecisionsStore()
   const { name: orgName, isConfigured } = useOrgStore()
 
+  const WEIGHT_ORDER: Record<string, number> = { 'Crítica': 4, 'Mayor': 3, 'Significativa': 2, 'Menor': 1 }
   const active   = decisions.filter((d) => d.status !== 'resuelta')
+    .sort((a, b) => (WEIGHT_ORDER[b.weight] ?? 1) - (WEIGHT_ORDER[a.weight] ?? 1))
   const resolved = decisions.filter((d) => d.status === 'resuelta')
 
   const today = new Date()
